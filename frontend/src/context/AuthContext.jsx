@@ -51,6 +51,11 @@ export function AuthProvider({ children }) {
   async function register(userData) {
     const data = await apiClient('/auth/register', {
       method: 'POST',
+      headers: {
+        'Access-Control-Allow-Origin': '*',
+        'Access-Control-Allow-Methods': 'GET, POST, PUT, DELETE, OPTIONS',
+        'Access-Control-Allow-Headers': 'Content-Type, Authorization',
+      },
       body: JSON.stringify(userData),
     });
 

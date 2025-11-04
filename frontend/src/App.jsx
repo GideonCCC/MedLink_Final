@@ -1,5 +1,10 @@
 import React from 'react';
-import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
+import {
+  BrowserRouter as Router,
+  Routes,
+  Route,
+  Navigate,
+} from 'react-router-dom';
 import { AuthProvider } from './context/AuthContext';
 import Home from './components/Home/Home';
 import Login from './components/Login/Login';
@@ -12,6 +17,8 @@ import BookVisitStart from './components/Patient/BookVisitStart';
 import PatientLayout from './components/Patient/PatientLayout';
 import PrivateRoute from './components/Shared/PrivateRoute';
 import Navbar from './components/Shared/Navbar';
+import DoctorsLayout from './components/Doctors/DoctorsLayout';
+import DoctorAvailibility from './components/Doctors/Availibility/DoctorAvailibility';
 
 function App() {
   return (
@@ -45,14 +52,42 @@ function App() {
                 <PrivateRoute role="patient">
                   <PatientLayout>
                     <Routes>
-                      <Route path="" element={<Navigate to="dashboard" replace />} />
+                      <Route
+                        path=""
+                        element={<Navigate to="dashboard" replace />}
+                      />
                       <Route path="dashboard" element={<PatientDashboard />} />
                       <Route path="book-visit" element={<BookVisitStart />} />
-                      <Route path="appointments/new" element={<AppointmentForm />} />
-                      <Route path="appointments/:id/edit" element={<AppointmentForm />} />
+                      <Route
+                        path="appointments/new"
+                        element={<AppointmentForm />}
+                      />
+                      <Route
+                        path="appointments/:id/edit"
+                        element={<AppointmentForm />}
+                      />
                       <Route path="history" element={<PatientHistory />} />
                     </Routes>
                   </PatientLayout>
+                </PrivateRoute>
+              }
+            />
+            <Route
+              path="/doctor/*"
+              element={
+                <PrivateRoute role="doctor">
+                  <DoctorsLayout>
+                    <Routes>
+                      <Route
+                        path=""
+                        element={<Navigate to="availability" replace />}
+                      />
+                      <Route
+                        path="availability"
+                        element={<DoctorAvailibility />}
+                      />
+                    </Routes>
+                  </DoctorsLayout>
                 </PrivateRoute>
               }
             />
@@ -64,4 +99,3 @@ function App() {
 }
 
 export default App;
-

@@ -1,4 +1,4 @@
-const { MongoClient } = require('mongodb');
+import { MongoClient } from 'mongodb';
 
 let client = null;
 let db = null;
@@ -41,9 +41,4 @@ async function closeDatabase() {
   }
 }
 
-module.exports = {
-  connectToDatabase,
-  getDatabase,
-  closeDatabase,
-};
-
+export { connectToDatabase, getDatabase, closeDatabase };

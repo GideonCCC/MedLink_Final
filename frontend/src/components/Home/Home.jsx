@@ -31,6 +31,10 @@ function ServiceIcon({ iconType }) {
   );
 }
 
+ServiceIcon.propTypes = {
+  iconType: PropTypes.string.isRequired,
+};
+
 function Home() {
   const navigate = useNavigate();
   const [searchQuery, setSearchQuery] = useState('');

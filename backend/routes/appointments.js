@@ -1,7 +1,7 @@
-const express = require('express');
-const { ObjectId } = require('mongodb');
-const { getDatabase } = require('../database/connection');
-const { requireAuth, requireRole } = require('../middleware/auth');
+import express from 'express';
+import { ObjectId } from 'mongodb';
+import { getDatabase } from '../database/connection.js';
+import { requireAuth, requireRole } from '../middleware/auth.js';
 
 const router = express.Router();
 
@@ -23,7 +23,9 @@ router.post('/', requireAuth, requireRole('patient'), async (req, res) => {
 
     // Check if time is in the future
     if (start < new Date()) {
-      return res.status(400).json({ error: 'Cannot book appointments in the past' });
+      return res
+        .status(400)
+        .json({ error: 'Cannot book appointments in the past' });
     }
 
     // Check if doctor exists
@@ -151,7 +153,10 @@ router.get('/', requireAuth, requireRole('patient'), async (req, res) => {
 
         const doctor = await db
           .collection('users')
-          .findOne({ _id: doctorObjectId }, { projection: { name: 1, specialty: 1 } });
+          .findOne(
+            { _id: doctorObjectId },
+            { projection: { name: 1, specialty: 1 } }
+          );
         return {
           id: apt._id.toString(),
           patientId: apt.patientId,
@@ -216,7 +221,9 @@ router.put('/:id', requireAuth, requireRole('patient'), async (req, res) => {
     const update = {};
 
     if (startDateTime || endDateTime) {
-      const start = startDateTime ? new Date(startDateTime) : appointment.startDateTime;
+      const start = startDateTime
+        ? new Date(startDateTime)
+        : appointment.startDateTime;
       const end = endDateTime ? new Date(endDateTime) : appointment.endDateTime;
 
       // Check if time is in the future
@@ -263,9 +270,13 @@ router.put('/:id', requireAuth, requireRole('patient'), async (req, res) => {
 
     update.updatedAt = new Date();
 
-    await db.collection('appointments').updateOne({ _id: appointmentObjectId }, { $set: update });
+    await db
+      .collection('appointments')
+      .updateOne({ _id: appointmentObjectId }, { $set: update });
 
-    const updated = await db.collection('appointments').findOne({ _id: appointmentObjectId });
+    const updated = await db
+      .collection('appointments')
+      .findOne({ _id: appointmentObjectId });
 
     res.json({
       id: updated._id.toString(),
@@ -308,7 +319,9 @@ router.delete('/:id', requireAuth, requireRole('patient'), async (req, res) => {
 
     // Can only cancel upcoming appointments
     if (appointment.status !== 'upcoming') {
-      return res.status(400).json({ error: 'Can only cancel upcoming appointments' });
+      return res
+        .status(400)
+        .json({ error: 'Can only cancel upcoming appointments' });
     }
 
     await db
@@ -325,5 +338,4 @@ router.delete('/:id', requireAuth, requireRole('patient'), async (req, res) => {
   }
 });
 
-module.exports = router;
-
+export default router;

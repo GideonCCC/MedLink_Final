@@ -1,0 +1,72 @@
+.doctor-availability {
+  background: transparent;
+}
+
+.availability-description {
+  color: #666;
+  margin-bottom: 1rem;
+}
+
+.availability-grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 1.25rem;
+}
+
+.day-card {
+  background: #ffffff;
+  border: 1px solid #e6e6e6;
+  border-radius: 12px;
+  padding: 1rem;
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.06);
+}
+
+.day-header {
+  font-weight: 600;
+  color: #333;
+  margin-bottom: 0.75rem;
+}
+
+.slots-grid {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 0.5rem;
+}
+
+.slot-button {
+  padding: 0.6rem 0.5rem;
+  border: 1px solid #d9d9d9;
+  border-radius: 8px;
+  background: #ffffff;
+  color: #333;
+  cursor: pointer;
+  transition: all 0.15s ease-in-out;
+}
+
+.slot-button:hover {
+  border-color: #bfbfbf;
+  background: #fafafa;
+}
+
+.slot-button.selected {
+  background: #00b894;
+  color: #ffffff;
+  border-color: #00b894;
+}
+
+.slot-button.selected:hover {
+  background: #00a085;
+  border-color: #00a085;
+}
+
+@media (min-width: 720px) {
+  .availability-grid {
+    grid-template-columns: 1fr 1fr;
+  }
+}
+
+@media (min-width: 1100px) {
+  .availability-grid {
+    grid-template-columns: 1fr 1fr 1fr;
+  }
+}

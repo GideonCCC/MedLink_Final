@@ -1,16 +1,19 @@
-require('dotenv').config();
-const express = require('express');
-const { connectToDatabase } = require('./database/connection');
-
-const authRoutes = require('./routes/auth');
-const appointmentRoutes = require('./routes/appointments');
-const doctorRoutes = require('./routes/doctors');
+import dotenv from 'dotenv';
+dotenv.config();
+import express from 'express';
+import { connectToDatabase } from './database/connection.js';
+import cors from 'cors';
+import authRoutes from './routes/auth.js';
+import appointmentRoutes from './routes/appointments.js';
+import doctorRoutes from './routes/doctors.js';
 
 const app = express();
 const PORT = process.env.PORT || 3001;
 
 // Middleware
 app.use(express.json());
+
+app.use(cors());
 
 // Routes
 app.use('/auth', authRoutes);
@@ -37,7 +40,7 @@ app.get('/health', (req, res) => {
 });
 
 // Error handling middleware
-app.use((err, req, res, next) => {
+app.use((err, _, res) => {
   console.error('Error:', err);
   res.status(500).json({ error: 'Internal server error' });
 });
@@ -56,4 +59,3 @@ async function startServer() {
 }
 
 startServer();
-

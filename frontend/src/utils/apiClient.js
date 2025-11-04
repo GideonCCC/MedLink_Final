@@ -1,4 +1,4 @@
-const API_BASE_URL = '';
+const API_BASE_URL = 'http://localhost:3001';
 
 export async function apiClient(endpoint, options = {}) {
   const token = localStorage.getItem('token');
@@ -6,19 +6,20 @@ export async function apiClient(endpoint, options = {}) {
   const config = {
     ...options,
     headers: {
+      ...options.headers,
       'Content-Type': 'application/json',
       ...(token && { Authorization: `Bearer ${token}` }),
-      ...options.headers,
     },
   };
 
   const response = await fetch(`${API_BASE_URL}${endpoint}`, config);
 
   if (!response.ok) {
-    const error = await response.json().catch(() => ({ error: 'Network error' }));
+    const error = await response
+      .json()
+      .catch(() => ({ error: 'Network error' }));
     throw new Error(error.error || 'Request failed');
   }
 
   return response.json();
 }
-

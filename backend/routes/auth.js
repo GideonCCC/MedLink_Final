@@ -1,9 +1,9 @@
-const express = require('express');
-const bcrypt = require('bcryptjs');
-const jwt = require('jsonwebtoken');
-const { ObjectId } = require('mongodb');
-const { getDatabase } = require('../database/connection');
-const { requireAuth } = require('../middleware/auth');
+import express from 'express';
+import bcrypt from 'bcryptjs';
+import jwt from 'jsonwebtoken';
+import { ObjectId } from 'mongodb';
+import { getDatabase } from '../database/connection.js';
+import { requireAuth } from '../middleware/auth.js';
 
 const router = express.Router();
 
@@ -153,5 +153,4 @@ router.get('/me', requireAuth, async (req, res) => {
   }
 });
 
-module.exports = router;
-
+export default router;

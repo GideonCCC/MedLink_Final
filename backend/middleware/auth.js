@@ -1,4 +1,4 @@
-const jwt = require('jsonwebtoken');
+import jwt from 'jsonwebtoken';
 
 function requireAuth(req, res, next) {
   try {
@@ -30,8 +30,4 @@ function requireRole(role) {
   };
 }
 
-module.exports = {
-  requireAuth,
-  requireRole,
-};
-
+export { requireAuth, requireRole };

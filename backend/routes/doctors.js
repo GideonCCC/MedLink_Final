@@ -1,7 +1,8 @@
-const express = require('express');
-const { ObjectId } = require('mongodb');
-const { getDatabase } = require('../database/connection');
-const { requireAuth } = require('../middleware/auth');
+import express from 'express';
+import { ObjectId } from 'mongodb';
+import { getDatabase } from '../database/connection.js';
+import { availibility } from '../middleware/pre_check.js';
+import { requireAuth, requireRole } from '../middleware/auth.js';
 
 const router = express.Router();
 
@@ -12,7 +13,7 @@ router.get('/specialties', async (req, res) => {
     const specialties = await db
       .collection('users')
       .distinct('specialty', { role: 'doctor', specialty: { $ne: null } });
-    
+
     res.json(specialties.sort());
   } catch (error) {
     console.error('Get specialties error:', error);
@@ -20,12 +21,46 @@ router.get('/specialties', async (req, res) => {
   }
 });
 
+router.post(
+  '/update-availability',
+  requireAuth,
+  requireRole('doctor'),
+  availibility,
+  async (req, res) => {
+    try {
+      const db = getDatabase();
+      const { availability } = req.body;
+
+      const { userId } = req.user;
+
+      if (await db.collection('availability').findOne({ userId })) {
+        await db
+          .collection('availability')
+          .updateOne({ userId }, { $set: { availability } });
+
+        return res
+          .status(200)
+          .json({ message: 'Availability updated successfully' });
+      }
+
+      await db.collection('availability').insertOne({
+        userId,
+        availability,
+      });
+
+      res.status(201).json({ message: 'Availability created successfully' });
+    } catch (error) {
+      console.error('Get availability error:', error);
+      res.status(500).json({ error: 'Internal server error' });
+    }
+  }
+);
 // Get all doctors (public - no auth required)
 router.get('/', async (req, res) => {
   try {
     const db = getDatabase();
     const { specialty } = req.query;
-    
+
     const query = { role: 'doctor' };
     if (specialty) {
       query.specialty = { $regex: specialty, $options: 'i' };
@@ -58,7 +93,9 @@ router.get('/:id/availability', async (req, res) => {
     const { date } = req.query;
 
     if (!date) {
-      return res.status(400).json({ error: 'Date parameter required (YYYY-MM-DD)' });
+      return res
+        .status(400)
+        .json({ error: 'Date parameter required (YYYY-MM-DD)' });
     }
 
     let doctorObjectId;
@@ -82,17 +119,20 @@ router.get('/:id/availability', async (req, res) => {
     nextDay.setDate(nextDay.getDate() + 1);
 
     // Get all appointments for this doctor on this date
-    const appointments = await db.collection('appointments').find({
-      doctorId: id,
-      startDateTime: { $gte: selectedDate, $lt: nextDay },
-      status: { $ne: 'cancelled' },
-    }).toArray();
+    const appointments = await db
+      .collection('appointments')
+      .find({
+        doctorId: id,
+        startDateTime: { $gte: selectedDate, $lt: nextDay },
+        status: { $ne: 'cancelled' },
+      })
+      .toArray();
 
     // Generate available 30-minute slots from 8 AM to 6 PM
     const slots = [];
     const startHour = 8;
     const endHour = 18;
-    
+
     for (let hour = startHour; hour < endHour; hour++) {
       for (let minute = 0; minute < 60; minute += 30) {
         const slotStart = new Date(selectedDate);
@@ -141,5 +181,4 @@ router.get('/:id/availability', async (req, res) => {
   }
 });
 
-module.exports = router;
-
+export default router;
