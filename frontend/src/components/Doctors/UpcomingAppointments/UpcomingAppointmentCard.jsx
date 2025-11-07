@@ -1,6 +1,5 @@
 import PropTypes from 'prop-types';
 import { useState } from 'react';
-import { Link } from 'react-router-dom';
 import './UpcomingAppointmentCard.css';
 
 function formatDate(dateString) {
@@ -71,12 +70,6 @@ export default function UpcomingAppointmentCard({ appointment, onCancel }) {
           )}
         </div>
         <div className="appointment-actions">
-          <Link
-            to={`/patient/appointments/${appointment.id}/edit`}
-            className="action-button"
-          >
-            Reschedule
-          </Link>
           <button
             onClick={() => {
               setCancelConfirmTimeout(true);
