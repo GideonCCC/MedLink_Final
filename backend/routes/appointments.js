@@ -324,14 +324,9 @@ router.delete('/:id', requireAuth, requireRole('patient'), async (req, res) => {
         .json({ error: 'Can only cancel upcoming appointments' });
     }
 
-    await db
-      .collection('appointments')
-      .updateOne(
-        { _id: appointmentObjectId },
-        { $set: { status: 'cancelled', updatedAt: new Date() } }
-      );
+    await db.collection('appointments').deleteOne({ _id: appointmentObjectId });
 
-    res.json({ message: 'Appointment cancelled successfully' });
+    res.json({ message: 'Appointment removed successfully' });
   } catch (error) {
     console.error('Cancel appointment error:', error);
     res.status(500).json({ error: 'Internal server error' });

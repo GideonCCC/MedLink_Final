@@ -1,5 +1,7 @@
-require('dotenv').config();
-const { MongoClient } = require('mongodb');
+import dotenv from 'dotenv';
+import { MongoClient } from 'mongodb';
+
+dotenv.config();
 
 async function cleanup() {
   let client;

@@ -1,5 +1,6 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { useNavigate, useParams, useSearchParams } from 'react-router-dom';
+import { createPortal } from 'react-dom';
 import PropTypes from 'prop-types';
 import { apiClient } from '../../utils/apiClient';
 import './AppointmentForm.css';
@@ -14,6 +15,10 @@ function AppointmentForm() {
   const [loading, setLoading] = useState(true);
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState('');
+  const [showTimeSlotModal, setShowTimeSlotModal] = useState(false);
+  const [slots, setSlots] = useState([]);
+  const [slotsLoading, setSlotsLoading] = useState(false);
+  const [selectedDate, setSelectedDate] = useState(new Date());
 
   const [formData, setFormData] = useState({
     doctorId: '',
@@ -97,6 +102,108 @@ function AppointmentForm() {
     }
   }
 
+  const loadDoctorSlots = useCallback(async () => {
+    if (!formData.doctorId) return;
+    
+    try {
+      setSlotsLoading(true);
+      const dateStr = selectedDate.toISOString().split('T')[0];
+      const data = await apiClient(`/api/doctors/${formData.doctorId}/availability?date=${dateStr}`);
+      setSlots(data.slots || []);
+    } catch (err) {
+      setError(err.message);
+    } finally {
+      setSlotsLoading(false);
+    }
+  }, [formData.doctorId, selectedDate]);
+
+  function handleOpenTimeSlotModal() {
+    if (!formData.doctorId) {
+      setError('Please select a doctor first');
+      return;
+    }
+    setShowTimeSlotModal(true);
+    loadDoctorSlots();
+  }
+
+  function handleCloseTimeSlotModal() {
+    setShowTimeSlotModal(false);
+  }
+
+  function handleSlotSelect(slot) {
+    if (!slot.available) return;
+    
+    const start = new Date(slot.start);
+    const end = new Date(slot.end);
+    
+    setFormData((prev) => ({
+      ...prev,
+      startDateTime: start.toISOString().slice(0, 16),
+      endDateTime: end.toISOString().slice(0, 16),
+    }));
+    
+    setShowTimeSlotModal(false);
+  }
+
+  function formatDateTime(dateTimeString) {
+    if (!dateTimeString) return '';
+    const date = new Date(dateTimeString);
+    return date.toLocaleString('en-US', {
+      weekday: 'short',
+      month: 'short',
+      day: 'numeric',
+      year: 'numeric',
+      hour: 'numeric',
+      minute: '2-digit',
+      hour12: true,
+    });
+  }
+
+  function formatDate(date) {
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    const dateToCheck = new Date(date);
+    dateToCheck.setHours(0, 0, 0, 0);
+
+    if (dateToCheck.getTime() === today.getTime()) {
+      return 'Today';
+    }
+
+    const tomorrow = new Date(today);
+    tomorrow.setDate(tomorrow.getDate() + 1);
+    if (dateToCheck.getTime() === tomorrow.getTime()) {
+      return 'Tomorrow';
+    }
+
+    return date.toLocaleDateString('en-US', {
+      weekday: 'long',
+      month: 'long',
+      day: 'numeric',
+    });
+  }
+
+  function handlePreviousDay() {
+    const newDate = new Date(selectedDate);
+    newDate.setDate(newDate.getDate() - 1);
+    setSelectedDate(newDate);
+  }
+
+  function handleNextDay() {
+    const newDate = new Date(selectedDate);
+    newDate.setDate(newDate.getDate() + 1);
+    setSelectedDate(newDate);
+  }
+
+  function handleToday() {
+    setSelectedDate(new Date());
+  }
+
+  useEffect(() => {
+    if (showTimeSlotModal && formData.doctorId) {
+      loadDoctorSlots();
+    }
+  }, [selectedDate, showTimeSlotModal, formData.doctorId, loadDoctorSlots]);
+
   async function handleSubmit(e) {
     e.preventDefault();
     setError('');
@@ -168,33 +275,60 @@ function AppointmentForm() {
             </select>
           </div>
 
-          <div className="form-row">
+          {isEdit ? (
             <div className="form-group">
-              <label htmlFor="startDateTime">Start Time</label>
-              <input
-                type="datetime-local"
-                id="startDateTime"
-                name="startDateTime"
-                value={formData.startDateTime}
-                onChange={handleChange}
-                required
-                min={new Date(Date.now() + 60 * 60 * 1000).toISOString().slice(0, 16)}
-              />
+              <label>Current Appointment Time</label>
+              <div className="current-time-display">
+                <div className="time-display-text">
+                  {formData.startDateTime && formData.endDateTime ? (
+                    <>
+                      <span className="time-label">Current:</span>
+                      <span className="time-value">
+                        {formatDateTime(formData.startDateTime)} - {formatDateTime(formData.endDateTime).split(' ').slice(-2).join(' ')}
+                      </span>
+                    </>
+                  ) : (
+                    <span className="time-placeholder">No time selected</span>
+                  )}
+                </div>
+                <button
+                  type="button"
+                  onClick={handleOpenTimeSlotModal}
+                  className="select-time-button"
+                >
+                  Select New Time Slot
+                </button>
+              </div>
             </div>
+          ) : (
+            <div className="form-row">
+              <div className="form-group">
+                <label htmlFor="startDateTime">Start Time</label>
+                <input
+                  type="datetime-local"
+                  id="startDateTime"
+                  name="startDateTime"
+                  value={formData.startDateTime}
+                  onChange={handleChange}
+                  required
+                  min={new Date(Date.now() + 60 * 60 * 1000).toISOString().slice(0, 16)}
+                />
+              </div>
 
-            <div className="form-group">
-              <label htmlFor="endDateTime">End Time</label>
-              <input
-                type="datetime-local"
-                id="endDateTime"
-                name="endDateTime"
-                value={formData.endDateTime}
-                onChange={handleChange}
-                required
-                min={formData.startDateTime || new Date().toISOString().slice(0, 16)}
-              />
+              <div className="form-group">
+                <label htmlFor="endDateTime">End Time</label>
+                <input
+                  type="datetime-local"
+                  id="endDateTime"
+                  name="endDateTime"
+                  value={formData.endDateTime}
+                  onChange={handleChange}
+                  required
+                  min={formData.startDateTime || new Date().toISOString().slice(0, 16)}
+                />
+              </div>
             </div>
-          </div>
+          )}
 
           <div className="form-group">
             <label htmlFor="reason">Reason for Visit (optional)</label>
@@ -222,9 +356,132 @@ function AppointmentForm() {
           </div>
         </form>
       </div>
+
+      {showTimeSlotModal && (
+        <TimeSlotModal
+          doctorId={formData.doctorId}
+          doctors={doctors}
+          slots={slots}
+          slotsLoading={slotsLoading}
+          selectedDate={selectedDate}
+          onPreviousDay={handlePreviousDay}
+          onNextDay={handleNextDay}
+          onToday={handleToday}
+          formatDate={formatDate}
+          onSlotSelect={handleSlotSelect}
+          onClose={handleCloseTimeSlotModal}
+        />
+      )}
     </div>
   );
 }
+
+function TimeSlotModal({
+  doctorId,
+  doctors,
+  slots,
+  slotsLoading,
+  selectedDate,
+  onPreviousDay,
+  onNextDay,
+  onToday,
+  formatDate,
+  onSlotSelect,
+  onClose,
+}) {
+  const doctor = doctors.find((d) => d.id === doctorId);
+
+  useEffect(() => {
+    document.body.style.overflow = 'hidden';
+    return () => {
+      document.body.style.overflow = 'unset';
+    };
+  }, []);
+
+  return createPortal(
+    <div className="time-slot-modal-overlay" onClick={onClose}>
+      <div className="time-slot-modal-content" onClick={(e) => e.stopPropagation()}>
+        <button className="time-slot-modal-close" onClick={onClose}>
+          ×
+        </button>
+        <h2 className="time-slot-modal-title">Select New Time Slot</h2>
+        {doctor && (
+          <p className="time-slot-modal-subtitle">
+            {doctor.name} - {doctor.specialty}
+          </p>
+        )}
+
+        <div className="time-slot-date-navigation">
+          <button
+            onClick={onPreviousDay}
+            className="time-slot-nav-button"
+            aria-label="Previous day"
+          >
+            ←
+          </button>
+          <div className="time-slot-date-display">
+            <button onClick={onToday} className="time-slot-date-text">
+              {formatDate(selectedDate)}
+            </button>
+            <span className="time-slot-date-full">
+              {selectedDate.toLocaleDateString('en-US', {
+                month: 'short',
+                day: 'numeric',
+                year: 'numeric',
+              })}
+            </span>
+          </div>
+          <button
+            onClick={onNextDay}
+            className="time-slot-nav-button"
+            aria-label="Next day"
+          >
+            →
+          </button>
+        </div>
+
+        {slotsLoading ? (
+          <div className="time-slot-loading">Loading available slots...</div>
+        ) : (
+          <div className="time-slot-grid">
+            {slots.length === 0 ? (
+              <div className="time-slot-empty">
+                <p>No available time slots for this day.</p>
+              </div>
+            ) : (
+              slots.map((slot, index) => (
+                <button
+                  key={index}
+                  className={`time-slot-item ${slot.available ? 'available' : 'booked'}`}
+                  onClick={() => onSlotSelect(slot)}
+                  disabled={!slot.available}
+                >
+                  {slot.time}
+                  {!slot.available && <span className="booked-label">Booked</span>}
+                </button>
+              ))
+            )}
+          </div>
+        )}
+      </div>
+    </div>,
+    document.body
+  );
+}
+
+TimeSlotModal.propTypes = {
+  doctorId: PropTypes.string.isRequired,
+  doctors: PropTypes.array.isRequired,
+  slots: PropTypes.array.isRequired,
+  slotsLoading: PropTypes.bool.isRequired,
+  selectedDate: PropTypes.instanceOf(Date).isRequired,
+  onPreviousDay: PropTypes.func.isRequired,
+  onNextDay: PropTypes.func.isRequired,
+  onToday: PropTypes.func.isRequired,
+  formatDate: PropTypes.func.isRequired,
+  onSlotSelect: PropTypes.func.isRequired,
+  onClose: PropTypes.func.isRequired,
+};
 
 export default AppointmentForm;
 
