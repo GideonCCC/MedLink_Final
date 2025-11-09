@@ -15,9 +15,9 @@ function formatDate(dateString) {
 }
 
 export default function UpcomingAppointmentCard({
+  type,
   appointment,
   onCancel,
-  type = 'upcoming',
 }) {
   const [cancelConfirm, setCancelConfirm] = useState(false);
   const [cancelConfirmTimeout, setCancelConfirmTimeout] = useState(false);
@@ -131,7 +131,7 @@ export default function UpcomingAppointmentCard({
             }}
             className={`${type === 'current' ? 'no-show-button' : 'cancel-appointment-button'}`}
           >
-            {type === 'current' ? 'No Show' : 'Cancel'}
+            {type === 'current' ? 'Mark as No Show' : 'Cancel'}
           </button>
         </div>
       </div>
@@ -142,7 +142,6 @@ export default function UpcomingAppointmentCard({
 UpcomingAppointmentCard.propTypes = {
   type: PropTypes.oneOf(['current', 'upcoming']).isRequired,
   appointment: PropTypes.shape({
-    id: PropTypes.string.isRequired,
     patientName: PropTypes.string.isRequired,
     startDateTime: PropTypes.string.isRequired,
     reason: PropTypes.string,

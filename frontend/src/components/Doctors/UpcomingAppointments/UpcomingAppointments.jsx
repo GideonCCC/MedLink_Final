@@ -92,6 +92,7 @@ export default function UpcomingAppointments() {
             {appointments.map((appointment) => (
               <UpcomingAppointmentCard
                 key={appointment._id}
+                type="upcoming"
                 appointment={appointment}
                 onCancel={() => {
                   cancelAppointment(appointment._id);
