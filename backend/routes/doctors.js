@@ -1,5 +1,6 @@
 import express from 'express';
 import { ObjectId } from 'mongodb';
+import jwt from 'jsonwebtoken';
 import { getDatabase } from '../database/connection.js';
 
 const router = express.Router();
@@ -92,6 +93,25 @@ router.get('/:id/availability', async (req, res) => {
       })
       .toArray();
 
+    // Optionally include patient-specific appointments to avoid conflicts
+    let patientAppointments = [];
+    const token = req.headers.authorization?.split(' ')[1];
+    if (token) {
+      try {
+        const decoded = jwt.verify(token, process.env.JWT_SECRET);
+        patientAppointments = await db
+          .collection('appointments')
+          .find({
+            patientId: decoded.userId,
+            startDateTime: { $gte: selectedDate, $lt: nextDay },
+            status: { $ne: 'cancelled' },
+          })
+          .toArray();
+      } catch (error) {
+        // Ignore token errors for optional auth
+      }
+    }
+
     // Generate available 30-minute slots from 8 AM to 6 PM
     const slots = [];
     const startHour = 8;
@@ -112,7 +132,13 @@ router.get('/:id/availability', async (req, res) => {
         }
 
         // Check if this slot conflicts with any appointment
-        const isBooked = appointments.some((apt) => {
+        const isDoctorBooked = appointments.some((apt) => {
+          const aptStart = new Date(apt.startDateTime);
+          const aptEnd = new Date(apt.endDateTime);
+          return slotStart < aptEnd && slotEnd > aptStart;
+        });
+
+        const isPatientBooked = patientAppointments.some((apt) => {
           const aptStart = new Date(apt.startDateTime);
           const aptEnd = new Date(apt.endDateTime);
           return slotStart < aptEnd && slotEnd > aptStart;
@@ -121,7 +147,7 @@ router.get('/:id/availability', async (req, res) => {
         slots.push({
           start: slotStart.toISOString(),
           end: slotEnd.toISOString(),
-          available: !isBooked,
+          available: !isDoctorBooked && !isPatientBooked,
           time: slotStart.toLocaleTimeString('en-US', {
             hour: 'numeric',
             minute: '2-digit',
