@@ -10,8 +10,8 @@ MedLink is a full-stack scheduling platform that streamlines communication betwe
 ## Course Information
 
 - **Course:** CS5610 Web Development – Project 03  
-- **Section:** [Add course section link](https://example.com/section) <!-- replace with the real section link -->  
-- **Design Document:** [Add design document link](https://example.com/design-doc) <!-- replace with the actual design document URL -->
+- **Section:** [Add course section link](https://johnguerra.co/classes/webDevelopment_online_fall_2025/Links) <!-- replace with the real section link -->  
+- **Design Document:** [Add design document link]([https://example.com/design-doc](https://docs.google.com/document/d/1fkzGFEovRiusWywCq3syP4W_1nU3qZ7ew6RF9wr5KZ8/edit?usp=sharing)) <!-- replace with the actual design document URL -->
 
 ---
 
