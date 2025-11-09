@@ -27,27 +27,6 @@ function AppointmentForm() {
     reason: '',
   });
 
-  useEffect(() => {
-    loadDoctors();
-    if (isEdit) {
-      loadAppointment();
-    } else {
-      // Check if coming from schedule booking
-      const doctorId = searchParams.get('doctorId');
-      const startDateTime = searchParams.get('startDateTime');
-      const endDateTime = searchParams.get('endDateTime');
-
-      if (doctorId && startDateTime && endDateTime) {
-        setFormData({
-          doctorId,
-          startDateTime: new Date(startDateTime).toISOString().slice(0, 16),
-          endDateTime: new Date(endDateTime).toISOString().slice(0, 16),
-          reason: '',
-        });
-      }
-    }
-  }, [id, isEdit, searchParams, loadAppointment, loadDoctors]);
-
   const loadDoctors = useCallback(async () => {
     try {
       const data = await apiClient('/api/doctors');
@@ -85,6 +64,27 @@ function AppointmentForm() {
       setError(err.message);
     }
   }, [id]);
+
+  useEffect(() => {
+    loadDoctors();
+    if (isEdit) {
+      loadAppointment();
+    } else {
+      // Check if coming from schedule booking
+      const doctorId = searchParams.get('doctorId');
+      const startDateTime = searchParams.get('startDateTime');
+      const endDateTime = searchParams.get('endDateTime');
+
+      if (doctorId && startDateTime && endDateTime) {
+        setFormData({
+          doctorId,
+          startDateTime: new Date(startDateTime).toISOString().slice(0, 16),
+          endDateTime: new Date(endDateTime).toISOString().slice(0, 16),
+          reason: '',
+        });
+      }
+    }
+  }, [id, isEdit, searchParams, loadAppointment, loadDoctors]);
 
   function handleChange(e) {
     const { name, value } = e.target;
