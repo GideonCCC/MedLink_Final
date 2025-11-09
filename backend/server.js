@@ -2,7 +2,6 @@ import dotenv from 'dotenv';
 dotenv.config();
 import express from 'express';
 import { connectToDatabase } from './database/connection.js';
-import cors from 'cors';
 import authRoutes from './routes/auth.js';
 import appointmentRoutes from './routes/appointments.js';
 import doctorRoutes from './routes/doctors.js';
@@ -15,7 +14,26 @@ const PORT = process.env.PORT || 3001;
 // Middleware
 app.use(express.json());
 
-app.use(cors());
+// Set CORS headers manually without using the cors package
+app.use((req, res, next) => {
+  res.header(
+    'Access-Control-Allow-Origin',
+    process.env.FRONTEND_ORIGIN || 'http://localhost:3000'
+  );
+  res.header(
+    'Access-Control-Allow-Methods',
+    'GET,POST,PUT,PATCH,DELETE,OPTIONS'
+  );
+  res.header(
+    'Access-Control-Allow-Headers',
+    'Origin, X-Requested-With, Content-Type, Accept, Authorization'
+  );
+  res.header('Access-Control-Allow-Credentials', 'true');
+  if (req.method === 'OPTIONS') {
+    return res.sendStatus(204);
+  }
+  next();
+});
 
 // Routes
 app.use('/auth', authRoutes);
@@ -33,7 +51,7 @@ app.get('/', (req, res) => {
       appointments: '/api/appointments',
       doctors: '/api/doctors',
     },
-    frontend: 'http://localhost:3000',
+    frontend: process.env.FRONTEND_ORIGIN || 'http://localhost:3000',
   });
 });
 
