@@ -5,14 +5,8 @@
   flex-direction: column;
 }
 
-/* Brand name at top left */
 .patient-brand {
-  position: fixed;
-  top: 0;
-  left: 0;
   padding: 1rem 1.5rem;
-  z-index: 1;
-  background: #f5f5f5;
 }
 
 .brand-link {
@@ -26,49 +20,30 @@
   color: #00a085;
 }
 
-/* Main content grid: 1, 4, 6, 1 */
-.patient-content-grid {
-  margin-top: 4rem;
-  min-height: calc(100vh - 4rem);
-  position: relative;
+.patient-layout-body {
+  display: flex;
+  gap: 1rem;
+  padding: 1rem 1.5rem 2rem;
+  flex: 1;
 }
 
-.patient-left-margin,
-.patient-right-margin {
-  /* Empty margin columns */
-}
-
-/* Left sidebar menu - 4 units */
-.patient-sidebar {
-  padding: 2rem 1.5rem;
-  background: white;
-  border-right: 1px solid #e0e0e0;
+.patient-menu {
+  flex: 1;
+  max-width: 320px;
+  background: #ffffff;
+  border: 1px solid #e6e6e6;
+  border-radius: 12px;
+  padding: 1.25rem;
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.06);
   display: flex;
   flex-direction: column;
-  gap: 2rem;
-  position: fixed;
-  left: 8.333%;
-  top: 50%;
-  transform: translateY(-50%);
-  width: 33.333%;
-  height: fit-content;
-  max-height: calc(100vh - 4rem);
-  overflow: visible;
-  border-radius: 12px;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
-  z-index: 1;
+  gap: 1.5rem;
 }
 
-/* Calculate fixed position based on grid: 1, 4, 6, 1 = 12 units total */
-/* Left margin = 1/12 (8.333%), Sidebar = 4/12 (33.333%), Content = 6/12 (50%), Right margin = 1/12 (8.333%) */
-/* So sidebar starts at 8.333% and is 33.333% wide */
-
 .sidebar-welcome {
-  font-size: 1.25rem;
+  font-size: 1.1rem;
   font-weight: 600;
   color: #333;
-  padding-bottom: 1rem;
-  border-bottom: 1px solid #e0e0e0;
 }
 
 .sidebar-nav {
@@ -78,12 +53,12 @@
 }
 
 .sidebar-nav-item {
-  padding: 1rem 1.25rem;
+  padding: 0.9rem 1rem;
   font-size: 1rem;
   color: #666;
   text-decoration: none;
-  border-radius: 8px;
-  transition: all 0.2s;
+  border-radius: 10px;
+  transition: all 0.2s ease;
   border: none;
   background: none;
   text-align: left;
@@ -98,7 +73,7 @@
 
 .sidebar-nav-item.active {
   background: #00b894;
-  color: white;
+  color: #fff;
 }
 
 .sidebar-nav-item.active:hover {
@@ -115,43 +90,67 @@
   color: #a00;
 }
 
-/* Right content area - 6 units */
 .patient-content {
-  padding: 2rem 2rem;
-  background: transparent;
-  overflow-y: auto;
-  position: fixed;
-  left: 41.666%;
-  right: 8.333%;
-  top: 4rem;
-  bottom: 0;
-  width: auto;
-  z-index: 1;
+  flex: 2;
+  background: #ffffff;
+  border: 1px solid #e6e6e6;
+  border-radius: 12px;
+  padding: 2rem;
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.06);
+  min-height: 0;
 }
 
-/* Unified page title style */
 .patient-content h1,
 .patient-content h2 {
   font-size: 1.5rem;
   font-weight: 600;
   color: #333;
-  margin: 0 0 1.5rem 0;
-  padding: 0;
+  margin: 0 0 1.5rem;
 }
 
-@media (max-width: 768px) {
-  .patient-content-grid {
-    grid-template-columns: 1fr;
-    margin-top: 3.5rem;
+/* Responsive adjustments */
+@media (max-width: 1024px) {
+  .patient-layout-body {
+    flex-direction: column;
   }
 
-  .patient-left-margin,
-  .patient-sidebar {
-    display: none;
+  .patient-menu {
+    max-width: none;
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .sidebar-nav {
+    flex-direction: row;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+  }
+
+  .sidebar-nav-item {
+    flex: 1 1 calc(50% - 0.5rem);
+    text-align: center;
+  }
+
+  .sidebar-logout {
+    flex-basis: 100%;
+  }
+}
+
+@media (max-width: 640px) {
+  .patient-layout-body {
+    padding: 1rem;
+  }
+
+  .sidebar-nav {
+    flex-direction: column;
+  }
+
+  .sidebar-nav-item {
+    flex: 1 1 100%;
   }
 
   .patient-content {
-    padding: 1rem;
+    padding: 1.25rem;
   }
 }
 

@@ -20,29 +20,21 @@ function PatientLayout({ children }) {
 
   return (
     <div className="patient-layout">
-      {/* Brand name at top left */}
       <div className="patient-brand">
         <Link to="/patient/dashboard" className="brand-link">
           MedLink
         </Link>
       </div>
 
-      {/* Main content grid: 1, 4, 6, 1 */}
-      <div className="patient-content-grid">
-        {/* Left margin - empty */}
-        <div className="patient-left-margin"></div>
-
-        {/* Left sidebar menu - 4 units */}
-        <div className="patient-sidebar">
-          <div className="sidebar-welcome">
-            Welcome back, {user?.name || 'User'}
-          </div>
+      <div className="patient-layout-body">
+        <aside className="patient-menu">
+          <div className="sidebar-welcome">Welcome back, {user?.name || 'User'}</div>
           <nav className="sidebar-nav">
             <Link
               to="/patient/dashboard"
               className={`sidebar-nav-item ${isActive('/patient/dashboard') ? 'active' : ''}`}
             >
-              Home
+              Dashboard
             </Link>
             <Link
               to="/patient/book-visit"
@@ -54,21 +46,15 @@ function PatientLayout({ children }) {
               to="/patient/history"
               className={`sidebar-nav-item ${isActive('/patient/history') ? 'active' : ''}`}
             >
-              Health Record
+              Visit History
             </Link>
-            <button onClick={handleLogout} className="sidebar-nav-item sidebar-logout">
+            <button onClick={handleLogout} className="sidebar-nav-item sidebar-logout" type="button">
               Logout
             </button>
           </nav>
-        </div>
+        </aside>
 
-        {/* Right content area - 6 units */}
-        <div className="patient-content">
-          {children}
-        </div>
-
-        {/* Right margin - empty */}
-        <div className="patient-right-margin"></div>
+        <main className="patient-content">{children}</main>
       </div>
     </div>
   );
