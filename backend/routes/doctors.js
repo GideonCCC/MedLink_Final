@@ -124,6 +124,10 @@ router.get('/:id/availability', async (req, res) => {
       return res.status(404).json({ error: 'Doctor not found' });
     }
 
+    const availabilityDoc = await db
+      .collection('availability')
+      .findOne({ userId: id });
+
     // Parse the date and get start/end of day in local time
     const [year, month, day] = date.split('-').map(Number);
     if ([year, month, day].some((value) => Number.isNaN(value))) {
@@ -131,6 +135,14 @@ router.get('/:id/availability', async (req, res) => {
     }
     const startOfDay = createZonedDate(year, month, day, 0, 0, CLINIC_TIME_ZONE);
     const startOfNextDay = createZonedDate(year, month, day + 1, 0, 0, CLINIC_TIME_ZONE);
+
+    const dayOfWeek = new Intl.DateTimeFormat('en-US', {
+      weekday: 'long',
+      timeZone: CLINIC_TIME_ZONE,
+    }).format(startOfDay);
+
+    const dayAvailability =
+      availabilityDoc?.availability?.[dayOfWeek] || [];
 
     // Get all appointments for this doctor on this date
     const appointments = await db
@@ -161,44 +173,70 @@ router.get('/:id/availability', async (req, res) => {
       }
     }
 
-    // Generate available 30-minute slots from 8 AM to 6 PM
     const slots = [];
-    const startHour = 8;
-    const endHour = 18;
     const now = new Date();
     const oneHourFromNow = new Date(now.getTime() + 60 * 60 * 1000);
 
-    for (let hour = startHour; hour < endHour; hour++) {
-      for (let minute = 0; minute < 60; minute += 30) {
-        const slotStart = createZonedDate(year, month, day, hour, minute, CLINIC_TIME_ZONE);
-        const slotEnd = new Date(slotStart.getTime() + 30 * 60 * 1000);
+    const normalizedTimes = Array.from(
+      new Set(
+        dayAvailability
+          .filter((time) => typeof time === 'string')
+          .map((time) => time.trim())
+      )
+    ).sort();
 
-        // Skip if slot is less than 1 hour from now
-        // This allows same-day appointments as long as they're at least 1 hour ahead
-        if (slotStart < oneHourFromNow) {
-          continue;
-        }
+    for (const timeString of normalizedTimes) {
+      const [hourStr, minuteStr] = timeString.split(':');
+      const slotHour = Number(hourStr);
+      const slotMinute = Number(minuteStr);
 
-        // Check if this slot conflicts with any appointment
-        const isDoctorBooked = appointments.some((apt) => {
-          const aptStart = new Date(apt.startDateTime);
-          const aptEnd = new Date(apt.endDateTime);
-          return slotStart < aptEnd && slotEnd > aptStart;
-        });
-
-        const isPatientBooked = patientAppointments.some((apt) => {
-          const aptStart = new Date(apt.startDateTime);
-          const aptEnd = new Date(apt.endDateTime);
-          return slotStart < aptEnd && slotEnd > aptStart;
-        });
-
-        slots.push({
-          start: slotStart.toISOString(),
-          end: slotEnd.toISOString(),
-          available: !isDoctorBooked && !isPatientBooked,
-          time: formatTimeInZone(slotStart, CLINIC_TIME_ZONE),
-        });
+      if (
+        Number.isNaN(slotHour) ||
+        Number.isNaN(slotMinute) ||
+        slotHour < 0 ||
+        slotHour > 23 ||
+        slotMinute < 0 ||
+        slotMinute >= 60
+      ) {
+        continue;
       }
+
+      const slotStart = createZonedDate(
+        year,
+        month,
+        day,
+        slotHour,
+        slotMinute,
+        CLINIC_TIME_ZONE
+      );
+      const slotEnd = new Date(slotStart.getTime() + 30 * 60 * 1000);
+
+      if (slotStart < startOfDay || slotEnd > startOfNextDay) {
+        continue;
+      }
+
+      if (slotStart < oneHourFromNow) {
+        continue;
+      }
+
+      const isDoctorBooked = appointments.some((apt) => {
+        const aptStart = new Date(apt.startDateTime);
+        const aptEnd = new Date(apt.endDateTime);
+        return slotStart < aptEnd && slotEnd > aptStart;
+      });
+
+      const isPatientBooked = patientAppointments.some((apt) => {
+        const aptStart = new Date(apt.startDateTime);
+        const aptEnd = new Date(apt.endDateTime);
+        return slotStart < aptEnd && slotEnd > aptStart;
+      });
+
+      slots.push({
+        start: slotStart.toISOString(),
+        end: slotEnd.toISOString(),
+        available: !isDoctorBooked && !isPatientBooked,
+        time: formatTimeInZone(slotStart, CLINIC_TIME_ZONE),
+      });
     }
 
     res.json({

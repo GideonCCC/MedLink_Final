@@ -152,7 +152,6 @@ To reseed:
 npm run cleanup
 npm run seed
 ```
-
 Collections used:
 - **users** – stores patients and doctors (with role + specialty metadata)
 - **appointments** – visit details with status lifecycle
@@ -216,3 +215,4 @@ Indexes include compound lookups on `patientId/startDateTime` and `doctorId/star
 ## License
 
 Distributed under the [MIT License](LICENSE). Replace the placeholders above (course section and design doc) before submission.
+
