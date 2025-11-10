@@ -7,18 +7,7 @@
 
 .patient-brand {
   padding: 1rem 1.5rem;
-  position: sticky;
-  top: 0;
-  left: 0;
-  z-index: 20;
-  align-self: flex-start;
-}
-
-@media (max-width: 768px) {
-  .patient-brand {
-    position: static;
-    text-align: center;
-  }
+  text-align: left;
 }
 
 .brand-link {
@@ -118,35 +107,22 @@
   margin: 0 0 1.5rem;
 }
 
-/* Wider screens: place sidebar beside content */
-@media (min-width: 1024px) {
+@media (max-width: 640px) {
   .patient-layout-body {
-    flex-direction: row;
-    align-items: flex-start;
+    padding: 0 1rem 1.5rem;
   }
 
   .patient-sidebar {
-    flex: 0 0 320px;
-    position: sticky;
-    top: 2rem;
-    align-self: flex-start;
-  }
-
-  .sidebar-nav {
-    align-items: stretch;
+    padding: 1.25rem 1rem;
   }
 
   .sidebar-nav-item {
-    text-align: left;
-  }
-
-  .sidebar-logout {
-    margin-top: 1rem;
+    font-size: 0.95rem;
+    padding: 0.85rem 1rem;
   }
 
   .patient-content {
-    flex: 1;
-    min-width: 0;
+    padding: 1.25rem;
   }
 }
 
