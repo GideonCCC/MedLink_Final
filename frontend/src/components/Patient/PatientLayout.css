@@ -23,7 +23,8 @@
 
 .patient-layout-body {
   display: flex;
-  flex-direction: column;
+  flex-direction: row;
+  align-items: flex-start;
   gap: 1rem;
   padding: 0 1.5rem 2rem;
   flex: 1;
@@ -33,6 +34,7 @@
 }
 
 .patient-sidebar {
+  flex: 0 0 300px;
   background: #fff;
   border: 1px solid #e6e6e6;
   border-radius: 12px;
@@ -41,6 +43,8 @@
   display: flex;
   flex-direction: column;
   gap: 1.5rem;
+  position: sticky;
+  top: 1.5rem;
 }
 
 .sidebar-welcome {
@@ -94,6 +98,7 @@
 }
 
 .patient-content {
+  flex: 1;
   background: #fff;
   border: 1px solid #e6e6e6;
   border-radius: 12px;
@@ -108,6 +113,18 @@
   font-weight: 600;
   color: #333;
   margin: 0 0 1.5rem;
+}
+
+@media (max-width: 900px) {
+  .patient-layout-body {
+    flex-direction: column;
+  }
+
+  .patient-sidebar {
+    position: static;
+    top: auto;
+    width: 100%;
+  }
 }
 
 @media (max-width: 640px) {
