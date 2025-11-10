@@ -27,7 +27,7 @@ function PatientLayout({ children }) {
       </div>
 
       <div className="patient-layout-body">
-        <aside className="patient-menu">
+        <aside className="patient-sidebar">
           <div className="sidebar-welcome">Welcome back, {user?.name || 'User'}</div>
           <nav className="sidebar-nav">
             <Link
