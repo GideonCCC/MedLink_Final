@@ -8,10 +8,13 @@
 .doctor-layout {
   display: flex;
   flex-direction: row;
-  justify-content: space-between;
   align-items: flex-start;
-  padding: 1rem 1.5rem;
   gap: 1rem;
+  padding: 0 1.5rem 2rem;
+  flex: 1;
+  width: 100%;
+  max-width: 1200px;
+  margin: 0 auto 2rem;
 }
 
 .doctor-brand {
@@ -19,46 +22,219 @@
 }
 
 .doctor-menu-bar {
-  flex: 1;
-  background: #ffffff;
-  border: 1px solid #e6e6e6;
-  border-radius: 12px;
-  padding: 1.25rem;
-  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.06);
-  display: flex;
-  flex-direction: column;
-  gap: 1.5rem;
-}
-
-.doctor-content {
-  flex: 2;
+  flex: 0 0 300px;
   background: #ffffff;
   border: 1px solid #e6e6e6;
   border-radius: 12px;
   padding: 1.5rem;
-  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.06);
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.08);
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+  position: sticky;
+  top: 1.5rem;
+}
+
+.doctor-content {
+  flex: 1;
+  background: #ffffff;
+  border: 1px solid #e6e6e6;
+  border-radius: 12px;
+  padding: 1.75rem 1.5rem;
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.08);
+  min-height: 0;
   min-width: 0;
+  overflow-x: hidden;
+  overflow-y: visible;
 }
 
 .brand-link {
   font-size: 1.5rem;
   font-weight: 700;
-  color: #00b894;
+  color: #007a63;
   text-decoration: none;
 }
 
 .brand-link:hover {
-  color: #00a085;
+  color: #006b54;
 }
 
-@media (max-width: 768px) {
+.sidebar-welcome {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+
+.welcome-text {
+  font-size: 1rem;
+  font-weight: 400;
+  color: #666;
+}
+
+.user-name {
+  font-size: 1.25rem;
+  font-weight: 600;
+  color: #333;
+}
+
+.sidebar-nav {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.sidebar-nav-item {
+  padding: 1rem 1.25rem;
+  font-size: 1rem;
+  color: #666;
+  text-decoration: none;
+  border-radius: 10px;
+  transition: all 0.2s;
+  border: none;
+  background: none;
+  text-align: left;
+  cursor: pointer;
+  font-family: inherit;
+}
+
+.sidebar-nav-item:hover {
+  background: #f0f0f0;
+  color: #333;
+}
+
+.sidebar-nav-item.active {
+  background: #007a63;
+  color: #fff;
+}
+
+.sidebar-nav-item.active:hover {
+  background: #006b54;
+}
+
+.sidebar-logout {
+  margin-top: auto;
+  color: #c33;
+}
+
+.sidebar-logout:hover {
+  background: #fee;
+  color: #a00;
+}
+
+@media (max-width: 900px) {
   .doctor-layout {
     flex-direction: column;
-    padding: 1rem;
   }
 
-  .doctor-menu-bar,
-  .doctor-content {
+  .doctor-menu-bar {
+    position: static;
+    top: auto;
     width: 100%;
   }
+}
+
+@media (max-width: 640px) {
+  .doctor-layout {
+    padding: 0 1rem 1.5rem;
+  }
+
+  .doctor-menu-bar {
+    padding: 1.25rem 1rem;
+  }
+
+  .doctor-content {
+    padding: 1.25rem;
+  }
+}
+
+/* Logout Confirmation Modal */
+.modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 99999;
+  pointer-events: auto;
+}
+
+.modal-content {
+  background: white;
+  border-radius: 12px;
+  padding: 2rem;
+  max-width: 400px;
+  width: 90%;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+  z-index: 100000;
+  position: relative;
+  pointer-events: auto;
+}
+
+.modal-content h3 {
+  font-size: 1.5rem;
+  font-weight: 600;
+  color: #333;
+  margin: 0 0 1rem 0;
+}
+
+.modal-content p {
+  color: #666;
+  margin: 0 0 2rem 0;
+  line-height: 1.5;
+}
+
+.modal-actions {
+  display: flex;
+  gap: 0.5rem;
+  justify-content: space-between;
+}
+
+.modal-cancel-button {
+  padding: 0.875rem 1.5rem;
+  background: white;
+  color: #666;
+  border: 2px solid #e0e0e0;
+  border-radius: 6px;
+  font-weight: 500;
+  font-size: 0.95rem;
+  cursor: pointer;
+  transition: all 0.2s;
+  flex: 1;
+}
+
+.modal-cancel-button:hover {
+  background: #f5f5f5;
+  border-color: #ccc;
+}
+
+.modal-cancel-button:focus {
+  outline: 2px solid var(--color-info);
+  outline-offset: 2px;
+}
+
+.modal-confirm-button {
+  padding: 0.875rem 1.5rem;
+  background: #c33;
+  color: white;
+  border: 2px solid #c33;
+  border-radius: 6px;
+  font-weight: 500;
+  font-size: 0.95rem;
+  cursor: pointer;
+  transition: all 0.2s;
+  flex: 1;
+}
+
+.modal-confirm-button:hover {
+  background: #a00;
+  border-color: #a00;
+}
+
+.modal-confirm-button:focus {
+  outline: 2px solid var(--color-info);
+  outline-offset: 2px;
 }

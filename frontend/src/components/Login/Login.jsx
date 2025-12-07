@@ -1,6 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
+import PropTypes from 'prop-types';
 import { useAuth } from '../../context/AuthContext';
+import backgroundImage from './images/Clinic_login.jpg';
 import './Login.css';
 
 function Login() {
@@ -58,8 +60,11 @@ function Login() {
   };
 
   return (
-    <div className="login-container">
-      <div className="login-card">
+    <div 
+      className="login-container"
+      style={{ backgroundImage: `url(${backgroundImage})` }}
+    >
+      <main className="login-card" role="main">
         <button
           className="back-button"
           onClick={handleBackToHome}
@@ -82,6 +87,8 @@ function Login() {
                 <input
                   type="text"
                   id="name"
+                  name="name"
+                  autoComplete="name"
                   value={name}
                   onChange={(e) => setName(e.target.value)}
                   required
@@ -93,6 +100,7 @@ function Login() {
                 <label htmlFor="role">I am a</label>
                 <select
                   id="role"
+                  name="role"
                   value={role}
                   onChange={(e) => {
                     setRole(e.target.value);
@@ -113,6 +121,7 @@ function Login() {
                   <input
                     type="text"
                     id="specialty"
+                    name="specialty"
                     value={specialty}
                     onChange={(e) => setSpecialty(e.target.value)}
                     required
@@ -128,6 +137,8 @@ function Login() {
             <input
               type="email"
               id="email"
+              name="email"
+              autoComplete={isRegister ? "email" : "username"}
               value={email}
               onChange={(e) => setEmail(e.target.value)}
               required
@@ -140,6 +151,8 @@ function Login() {
             <input
               type="password"
               id="password"
+              name="password"
+              autoComplete={isRegister ? "new-password" : "current-password"}
               value={password}
               onChange={(e) => setPassword(e.target.value)}
               required
@@ -154,6 +167,8 @@ function Login() {
               <input
                 type="tel"
                 id="phone"
+                name="phone"
+                autoComplete="tel"
                 value={phone}
                 onChange={(e) => setPhone(e.target.value)}
                 placeholder="Enter your phone number"
@@ -186,9 +201,13 @@ function Login() {
               : "Don't have an account? Sign up"}
           </button>
         </div>
-      </div>
+      </main>
     </div>
   );
 }
+
+Login.propTypes = {
+  // Login component doesn't receive props, but we document it for consistency
+};
 
 export default Login;

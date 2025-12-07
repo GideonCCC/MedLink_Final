@@ -5,19 +5,43 @@ import './PastAppointments.css';
 
 export default function PastAppointments() {
   const [appointments, setAppointments] = useState([]);
+  const [allAppointments, setAllAppointments] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
+  const [searchQuery, setSearchQuery] = useState('');
 
   const loadAppointments = useCallback(async () => {
     try {
       const data = await apiClient('/api/doctor/past-appointments');
-      setAppointments(data.appointments);
+      setAllAppointments(data.appointments);
+      filterAppointments(data.appointments, searchQuery);
     } catch (err) {
       setError(err.message);
     } finally {
       setLoading(false);
     }
-  }, []);
+  }, [searchQuery]);
+
+  const filterAppointments = (appts, query) => {
+    if (!query || query.trim() === '') {
+      setAppointments(appts);
+      return;
+    }
+
+    const searchTerm = query.toLowerCase().trim();
+    const filtered = appts.filter((apt) => {
+      const patientName = apt.patientName?.toLowerCase() || '';
+      return patientName.includes(searchTerm);
+    });
+
+    setAppointments(filtered);
+  };
+
+  const handleSearchChange = (e) => {
+    const query = e.target.value;
+    setSearchQuery(query);
+    filterAppointments(allAppointments, query);
+  };
 
   useEffect(() => {
     loadAppointments();
@@ -27,24 +51,49 @@ export default function PastAppointments() {
     <div className="past-appointments">
       <div className="info-container">
         <h1>Past Appointments</h1>
+        <div className="search-container">
+          <input
+            type="text"
+            id="past-appointments-search-input"
+            name="past-appointments-search"
+            placeholder="Search by patient name..."
+            value={searchQuery}
+            onChange={handleSearchChange}
+            className="search-input"
+            aria-label="Search appointments by patient name"
+          />
+        </div>
       </div>
-      {error && <div className="error-message">{error}</div>}
-      {loading ? (
-        <div className="loading">Loading appointments...</div>
-      ) : appointments.length === 0 ? (
-        <div className="empty-state">
-          <p>You don&apos;t have any upcoming appointments.</p>
-        </div>
-      ) : (
-        <div className="appointments-grid">
-          {appointments.map((appointment) => (
-            <PastAppointmentCard
-              key={appointment._id}
-              appointment={appointment}
-            />
-          ))}
-        </div>
-      )}
+      {error && <div className="error-message" role="alert">{error}</div>}
+      <div className="upcoming-section">
+        {loading ? (
+          <div className="loading">Loading appointments...</div>
+        ) : appointments.length === 0 ? (
+          <div className="empty-state">
+            <p>
+              {searchQuery
+                ? `No appointments found matching "${searchQuery}".`
+                : "You don't have any past appointments."}
+            </p>
+          </div>
+        ) : (
+          <>
+            {searchQuery && (
+              <div className="search-results-info">
+                Found {appointments.length} appointment{appointments.length !== 1 ? 's' : ''} matching &quot;{searchQuery}&quot;
+              </div>
+            )}
+            <div className="appointments-grid">
+              {appointments.map((appointment) => (
+                <PastAppointmentCard
+                  key={appointment._id}
+                  appointment={appointment}
+                />
+              ))}
+            </div>
+          </>
+        )}
+      </div>
     </div>
   );
 }

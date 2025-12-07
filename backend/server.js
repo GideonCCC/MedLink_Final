@@ -1,10 +1,17 @@
 import dotenv from 'dotenv';
 dotenv.config();
+
 import express from 'express';
 import path from 'path';
 import fs from 'fs';
 import { fileURLToPath } from 'url';
 import { connectToDatabase } from './database/connection.js';
+import passport from './config/passport.js';
+
+// Initialize Passport strategy after environment variables are loaded
+if (passport.initializeStrategy) {
+  passport.initializeStrategy();
+}
 import authRoutes from './routes/auth.js';
 import appointmentRoutes from './routes/appointments.js';
 import doctorRoutes from './routes/doctors.js';
@@ -19,6 +26,9 @@ const frontendDistPath = path.resolve(__dirname, '../frontend/dist');
 const hasFrontendBuild = fs.existsSync(frontendDistPath);
 
 app.use(express.json());
+
+// Initialize Passport
+app.use(passport.initialize());
 
 // API Routes
 app.use('/auth', authRoutes);

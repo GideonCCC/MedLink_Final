@@ -62,6 +62,7 @@ function PatientHistory() {
             <label htmlFor="status-filter">Status</label>
             <select
               id="status-filter"
+              name="status-filter"
               value={filters.status}
               onChange={(e) => handleFilterChange('status', e.target.value)}
             >
@@ -78,6 +79,7 @@ function PatientHistory() {
             <input
               type="date"
               id="from-date"
+              name="from-date"
               value={filters.from}
               onChange={(e) => handleFilterChange('from', e.target.value)}
             />
@@ -88,6 +90,7 @@ function PatientHistory() {
             <input
               type="date"
               id="to-date"
+              name="to-date"
               value={filters.to}
               onChange={(e) => handleFilterChange('to', e.target.value)}
             />
@@ -151,7 +154,9 @@ function PatientHistory() {
 function HistoryItem({ appointment }) {
   function formatDate(dateString) {
     const date = new Date(dateString);
+    // Use clinic timezone (America/New_York) for consistent date display
     return date.toLocaleDateString('en-US', {
+      timeZone: 'America/New_York',
       weekday: 'short',
       year: 'numeric',
       month: 'short',
@@ -175,7 +180,7 @@ function HistoryItem({ appointment }) {
     <div className="history-item">
       <div className="history-item-header">
         <div>
-          <h3>{appointment.doctorName}</h3>
+          <h2>{appointment.doctorName}</h2>
           {appointment.doctorSpecialty && (
             <p className="specialty">{appointment.doctorSpecialty}</p>
           )}

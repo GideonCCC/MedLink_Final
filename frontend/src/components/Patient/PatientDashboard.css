@@ -44,24 +44,26 @@
 }
 
 .primary-button {
-  background-color: #00b894;
+  background-color: #007a63; /* Same dark green as main page logo (WCAG AA contrast with white text) */
   color: white;
 }
 
 .primary-button:hover {
-  background-color: #00a085;
+  background-color: #006b54; /* Darker on hover */
   transform: translateY(-2px);
-  box-shadow: 0 4px 12px rgba(0, 184, 148, 0.3);
+  box-shadow: 0 4px 12px rgba(0, 107, 84, 0.3);
 }
 
 .secondary-button {
   background-color: white;
-  color: #00b894;
-  border: 2px solid #00b894;
+  color: #007a63; /* Same dark green as main page logo (WCAG AA contrast on white) */
+  border: 2px solid #006b54; /* Match text color */
 }
 
 .secondary-button:hover {
   background-color: #f0fdfb;
+  color: #006b54; /* Darker on hover */
+  border-color: #005a47;
 }
 
 .error-banner {
@@ -87,8 +89,8 @@
 
 .review-button {
   padding: 0.75rem 1.5rem;
-  background-color: #00b894;
-  color: white !important;
+  background-color: #007a63; /* Same dark green as main page logo (WCAG AA contrast with white text) */
+  color: white;
   border-radius: 6px;
   font-weight: 600;
   text-decoration: none;
@@ -99,9 +101,9 @@
 }
 
 .review-button:hover {
-  background-color: #00a085;
+  background-color: #006b54; /* Darker on hover */
   transform: translateY(-2px);
-  box-shadow: 0 4px 12px rgba(0, 184, 148, 0.3);
+  box-shadow: 0 4px 12px rgba(0, 107, 84, 0.3);
 }
 
 .upcoming-section {
@@ -123,9 +125,13 @@
 }
 
 .link-button {
-  color: #00b894;
+  color: #007a63; /* Same dark green as main page logo (WCAG AA contrast on white) */
   text-decoration: underline;
   font-weight: 500;
+}
+
+.link-button:hover {
+  color: #006b54; /* Darker on hover */
 }
 
 .appointments-grid {
@@ -142,7 +148,7 @@
 }
 
 .appointment-card:hover {
-  border-color: #00b894;
+  border-color: #007a63;
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
 }
 
@@ -186,8 +192,11 @@
   margin-bottom: 0.25rem;
 }
 
-.appointment-specialty {
-  color: #999;
+.appointment-specialty,
+p.appointment-specialty,
+.upcoming-section .appointment-specialty,
+.appointment-card .appointment-specialty {
+  color: #000000; /* Pure black for maximum WCAG AA contrast (21:1 on white background) */
   font-size: 0.9rem;
 }
 
@@ -202,10 +211,15 @@
 }
 
 .action-button {
-  color: #00b894;
+  color: #007a63; /* Same dark green as main page logo (WCAG AA contrast on white) */
   text-decoration: none;
   font-weight: 500;
   font-size: 0.9rem;
+}
+
+.action-button:hover {
+  color: #006b54; /* Darker on hover */
+}
 }
 
 .action-button:hover {

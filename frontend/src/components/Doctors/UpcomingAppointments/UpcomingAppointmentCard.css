@@ -115,7 +115,7 @@
 }
 
 .cancel-confirmation-modal-keep-button {
-  background: #00b894;
+  background: #007a63;
   color: white;
   border: none;
   border-radius: 5px;
@@ -150,13 +150,93 @@
 }
 
 .cancel-confirmation-modal-keep-button:hover {
-  background: #00977b;
+  background: #006b54;
 }
 
 .cancel-confirmation-modal-keep-button:active {
-  background: #00856b;
+  background: #006b54;
 }
 
 .upcoming-appointment-card {
   position: relative;
+}
+
+.appointment-card {
+  border: 2px solid #e0e0e0;
+  border-radius: 8px;
+  padding: 1.5rem;
+  transition: all 0.2s;
+  width: 100%;
+}
+
+.appointment-card:hover {
+  border-color: #007a63;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
+
+.appointment-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: start;
+  margin-bottom: 1rem;
+}
+
+.appointment-header h3 {
+  font-size: 1.2rem;
+  color: #333;
+  margin: 0;
+}
+
+.status-badge {
+  padding: 0.25rem 0.75rem;
+  border-radius: 20px;
+  font-size: 0.75rem;
+  font-weight: 600;
+  text-transform: capitalize;
+}
+
+.status-upcoming {
+  background-color: #d4edda;
+  color: #155724;
+}
+
+.appointment-details {
+  margin-bottom: 1rem;
+}
+
+.appointment-date {
+  font-weight: 600;
+  color: #333;
+  margin-bottom: 0.5rem;
+}
+
+.appointment-reason {
+  color: #666;
+  margin-bottom: 0.25rem;
+}
+
+.appointment-actions {
+  margin-top: 1rem;
+  padding-top: 1rem;
+  border-top: 1px solid #e0e0e0;
+  display: flex;
+  gap: 1rem;
+  align-items: center;
+  justify-content: flex-end;
+}
+
+.cancel-appointment-button {
+  color: #dc3545;
+  text-decoration: none;
+  font-weight: 500;
+  font-size: 0.9rem;
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 0;
+  font-family: inherit;
+}
+
+.cancel-appointment-button:hover {
+  text-decoration: underline;
 }

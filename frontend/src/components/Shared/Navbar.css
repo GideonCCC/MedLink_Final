@@ -18,7 +18,7 @@
 .navbar-brand {
   font-size: 1.5rem;
   font-weight: 700;
-  color: #00b894;
+  color: #007a63; /* Darker green for better contrast (WCAG AA) */
   text-decoration: none;
 }
 
@@ -36,7 +36,7 @@
 }
 
 .navbar-link:hover {
-  color: #00b894;
+  color: #007a63;
 }
 
 .navbar-user {
@@ -46,8 +46,8 @@
 
 .navbar-logout,
 .navbar-login {
-  background-color: #00b894;
-  color: white;
+  background-color: #007a63; /* Same dark green as main page logo (WCAG AA contrast with white text) */
+  color: #ffffff; /* Explicit white for better contrast */
   padding: 0.5rem 1rem;
   border-radius: 4px;
   font-weight: 500;
@@ -56,6 +56,6 @@
 
 .navbar-logout:hover,
 .navbar-login:hover {
-  background-color: #00a085;
+  background-color: #006b54; /* Darker on hover for better contrast */
 }
 

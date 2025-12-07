@@ -17,8 +17,8 @@
 .banner-image {
   width: 100%;
   height: 100%;
-  background: linear-gradient(135deg, #00b894 0%, #00a085 100%);
-  background-image: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 400"><defs><linearGradient id="grad" x1="0%" y1="0%" x2="100%" y2="0%"><stop offset="0%" style="stop-color:%2300b894;stop-opacity:0.9" /><stop offset="100%" style="stop-color:%2300a085;stop-opacity:0.7" /></linearGradient></defs><rect width="1200" height="400" fill="url(%23grad)"/><path d="M0,200 Q300,150 600,200 T1200,200 L1200,400 L0,400 Z" fill="rgba(255,255,255,0.1)"/></svg>');
+  background: linear-gradient(135deg, #006b54 0%, #005a47 100%);
+  background-image: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 400"><defs><linearGradient id="grad" x1="0%" y1="0%" x2="100%" y2="0%"><stop offset="0%" style="stop-color:%23006b54;stop-opacity:0.9" /><stop offset="100%" style="stop-color:%23005a47;stop-opacity:0.7" /></linearGradient></defs><rect width="1200" height="400" fill="url(%23grad)"/><path d="M0,200 Q300,150 600,200 T1200,200 L1200,400 L0,400 Z" fill="rgba(255,255,255,0.1)"/></svg>');
   background-size: cover;
   background-position: center;
   display: flex;
@@ -36,12 +36,14 @@
   font-size: 3rem;
   font-weight: 700;
   margin-bottom: 0.25rem;
+  color: white;
   text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.2);
 }
 
 .banner-tagline {
   font-size: 1.2rem;
   opacity: 0.95;
+  color: white;
   text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.2);
 }
 
@@ -70,7 +72,7 @@
 
 .clinic-header h2 {
   font-size: 2.5rem;
-  color: #00b894;
+  color: #007a63; /* Darker green for better contrast (WCAG AA) */
   margin-top: 2rem;
   margin-bottom: 2rem;
   font-weight: 700;
@@ -129,14 +131,14 @@
   content: '✓';
   position: absolute;
   left: 0;
-  color: #00b894;
+  color: #007a63;
   font-weight: bold;
 }
 
 .clinic-tagline {
   padding: 1.5rem;
   background: #f0fdfb;
-  border-left: 4px solid #00b894;
+  border-left: 4px solid #007a63;
   border-radius: 4px;
 }
 
@@ -177,7 +179,8 @@
   margin-bottom: 1.25rem;
 }
 
-.search-input-wrapper {
+.home-page .search-input-wrapper,
+.booking-box .search-input-wrapper {
   display: flex;
   align-items: center;
   border: 2px solid #e0e0e0;
@@ -186,16 +189,59 @@
   transition: border-color 0.2s;
 }
 
-.search-input-wrapper:focus-within {
-  border-color: #00b894;
+.home-page .search-input-wrapper:focus-within,
+.booking-box .search-input-wrapper:focus-within {
+  border-color: #007a63;
 }
 
-.search-input {
+.home-page .search-input,
+.booking-box .search-input {
   flex: 1;
   padding: 0.5rem 0.625rem;
-  border: none;
+  border: 0;
+  border-width: 0;
+  border-style: none;
   font-size: 0.85rem;
-  outline: none;
+  outline: 0;
+  outline-width: 0;
+  outline-style: none;
+  background: transparent;
+  box-shadow: none;
+  -webkit-appearance: none;
+  -moz-appearance: none;
+  appearance: none;
+}
+
+.home-page .search-input:focus,
+.booking-box .search-input:focus {
+  border: 0;
+  border-width: 0;
+  border-style: none;
+  outline: 0;
+  outline-width: 0;
+  outline-style: none;
+  box-shadow: none;
+}
+
+.home-page .search-input:focus-visible,
+.booking-box .search-input:focus-visible {
+  outline: 0;
+  outline-width: 0;
+  outline-style: none;
+  border: 0;
+  border-width: 0;
+  border-style: none;
+  box-shadow: none;
+}
+
+.home-page .search-input:hover,
+.booking-box .search-input:hover {
+  border: 0;
+  border-width: 0;
+  border-style: none;
+  outline: 0;
+  outline-width: 0;
+  outline-style: none;
 }
 
 .search-icon-button {
@@ -212,7 +258,7 @@
 }
 
 .search-icon-button:hover {
-  color: #00b894;
+  color: #007a63;
 }
 
 .common-reasons {
@@ -369,27 +415,153 @@
 .modal-search-wrapper {
   display: flex;
   align-items: center;
-  border: 2px solid #e0e0e0;
+  border: none;
   border-radius: 8px;
-  overflow: hidden;
-  transition: border-color 0.2s;
+  overflow: visible;
+  position: relative;
+  box-shadow: none;
 }
 
 .modal-search-wrapper:focus-within {
-  border-color: #00b894;
+  border: none;
+  box-shadow: none;
 }
 
-.modal-search-input {
+.search-input-container {
   flex: 1;
-  padding: 0.875rem 1rem;
+  position: relative;
   border: none;
+  background: transparent;
+}
+
+.search-modal .modal-search-input {
+  width: 100%;
+  padding: 0.875rem 1rem;
+  border: 0;
+  border-width: 0;
+  border-style: none;
+  border-radius: 0;
   font-size: 1rem;
-  outline: none;
+  outline: 0;
+  outline-width: 0;
+  outline-style: none;
+  box-sizing: border-box;
+  background: transparent;
+  box-shadow: none;
+  -webkit-appearance: none;
+  -moz-appearance: none;
+  appearance: none;
+}
+
+.search-modal .modal-search-input:focus {
+  border: 0;
+  border-width: 0;
+  border-style: none;
+  outline: 0;
+  outline-width: 0;
+  outline-style: none;
+  box-shadow: none;
+}
+
+.search-modal .modal-search-input:focus-visible {
+  outline: 0;
+  outline-width: 0;
+  outline-style: none;
+  border: 0;
+  border-width: 0;
+  border-style: none;
+  box-shadow: none;
+}
+
+.search-modal .modal-search-input:hover {
+  border: 0;
+  border-width: 0;
+  border-style: none;
+}
+
+.modal-search-wrapper:focus-within {
+  border: none;
+}
+
+.search-loading {
+  position: absolute;
+  right: 1rem;
+  top: 50%;
+  transform: translateY(-50%);
+  font-size: 0.85rem;
+  color: #999;
+}
+
+.doctor-dropdown {
+  position: absolute;
+  top: 100%;
+  left: 0;
+  right: 0;
+  background: white;
+  border: 1px solid #e0e0e0;
+  border-radius: 8px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  margin-top: 4px;
+  max-height: 300px;
+  overflow-y: auto;
+  z-index: 1001;
+}
+
+.doctor-dropdown-item {
+  width: 100%;
+  padding: 1rem;
+  border: none;
+  background: white;
+  text-align: left;
+  cursor: pointer;
+  transition: background-color 0.2s;
+  border-bottom: 1px solid #f0f0f0;
+}
+
+.doctor-dropdown-item:last-child {
+  border-bottom: none;
+}
+
+.doctor-dropdown-item:hover {
+  background: #f0fdfb;
+}
+
+.doctor-dropdown-name {
+  font-size: 1rem;
+  font-weight: 600;
+  color: #333;
+  margin-bottom: 0.25rem;
+}
+
+.doctor-dropdown-specialty {
+  font-size: 0.85rem;
+  color: #666;
+}
+
+.dropdown-section-header {
+  padding: 0.75rem 1rem 0.5rem;
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: #999;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  background: #f8f9fa;
+  border-bottom: 1px solid #e0e0e0;
+}
+
+.dropdown-divider {
+  height: 1px;
+  background: #e0e0e0;
+  margin: 0.5rem 0;
+}
+
+.specialty-item {
+  border-left: 3px solid #007a63;
 }
 
 .modal-search-button {
   padding: 0.875rem 1rem;
-  background: #00b894;
+  background: #007a63;
   border: none;
   cursor: pointer;
   font-size: 1.1rem;
@@ -401,45 +573,52 @@
 }
 
 .modal-search-button:hover {
-  background: #00a085;
+  background: #006b54;
 }
 
 .specialties-dropdown {
-  margin-top: 1.5rem;
+  margin-top: 2rem;
+  padding-top: 2rem;
+  border-top: 2px solid #e0e0e0;
 }
 
 .specialties-label {
-  font-size: 0.95rem;
-  color: #666;
-  margin-bottom: 1rem;
-  font-weight: 500;
+  font-size: 1.1rem;
+  color: #333;
+  margin-bottom: 1.25rem;
+  font-weight: 600;
+  text-align: center;
 }
 
 .specialties-list {
-  display: flex;
-  flex-direction: column;
-  gap: 0.5rem;
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+  gap: 0.75rem;
   max-height: 400px;
   overflow-y: auto;
+  padding: 0.5rem 0;
 }
 
 .specialty-item {
-  padding: 0.875rem 1rem;
+  padding: 1rem 1.25rem;
   border: 2px solid #e0e0e0;
-  border-radius: 6px;
+  border-radius: 8px;
   background: white;
   cursor: pointer;
   transition: all 0.2s;
-  text-align: left;
+  text-align: center;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
   font-size: 0.95rem;
   color: #333;
   font-weight: 500;
 }
 
 .specialty-item:hover {
-  border-color: #00b894;
   background: #f0fdfb;
-  transform: translateX(4px);
+  border-color: #007a63;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 8px rgba(0, 184, 148, 0.15);
+  color: #007a63;
 }
 
 .no-specialties {
@@ -474,5 +653,15 @@
 
   .modal-title {
     font-size: 1.5rem;
+  }
+
+  .specialties-list {
+    grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+    gap: 0.5rem;
+  }
+
+  .specialty-item {
+    padding: 0.75rem 1rem;
+    font-size: 0.9rem;
   }
 }

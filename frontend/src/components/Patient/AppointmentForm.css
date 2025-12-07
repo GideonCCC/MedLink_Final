@@ -70,13 +70,21 @@
 .form-group input:focus,
 .form-group select:focus,
 .form-group textarea:focus {
-  border-color: #00b894;
+  border-color: #007a63;
   outline: none;
 }
 
 .form-group textarea {
   resize: vertical;
   min-height: 100px;
+}
+
+.time-hint {
+  margin-top: 0.5rem;
+  font-size: 0.85rem;
+  color: #666;
+  font-style: italic;
+  line-height: 1.4;
 }
 
 .form-group select:disabled {
@@ -119,14 +127,14 @@
 }
 
 .submit-button {
-  background-color: #00b894;
+  background-color: #007a63; /* Same dark green as main page logo (WCAG AA contrast with white text) */
   color: white;
 }
 
 .submit-button:hover:not(:disabled) {
-  background-color: #00a085;
+  background-color: #006b54; /* Darker on hover */
   transform: translateY(-2px);
-  box-shadow: 0 4px 12px rgba(0, 184, 148, 0.3);
+  box-shadow: 0 4px 12px rgba(0, 107, 84, 0.3);
 }
 
 .submit-button:disabled {
@@ -176,7 +184,7 @@
 
 .select-time-button {
   padding: 0.75rem 1.5rem;
-  background-color: #00b894;
+  background-color: #007a63; /* Same dark green as main page logo (WCAG AA contrast with white text) */
   color: white;
   border: none;
   border-radius: 6px;
@@ -188,7 +196,7 @@
 }
 
 .select-time-button:hover {
-  background-color: #00a085;
+  background-color: #006b54;
   transform: translateY(-2px);
   box-shadow: 0 4px 12px rgba(0, 184, 148, 0.3);
 }
@@ -267,7 +275,7 @@
 }
 
 .time-slot-nav-button {
-  background: #00b894;
+  background: #007a63; /* Same dark green as main page logo (WCAG AA contrast with white text) */
   color: white;
   border: none;
   border-radius: 50%;
@@ -282,7 +290,7 @@
 }
 
 .time-slot-nav-button:hover {
-  background: #00a085;
+  background: #006b54;
   transform: scale(1.1);
 }
 
@@ -304,7 +312,7 @@
 }
 
 .time-slot-date-text:hover {
-  color: #00b894;
+  color: #007a63; /* Same dark green as main page logo (WCAG AA contrast on white) */
 }
 
 .time-slot-date-full {
@@ -349,7 +357,7 @@
 }
 
 .time-slot-item.available:hover {
-  border-color: #00b894;
+  border-color: #007a63;
   background: #f0fdfb;
   transform: translateY(-2px);
   box-shadow: 0 4px 8px rgba(0, 184, 148, 0.2);

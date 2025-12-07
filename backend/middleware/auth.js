@@ -1,21 +1,9 @@
-import jwt from 'jsonwebtoken';
+import passport from 'passport';
 
-function requireAuth(req, res, next) {
-  try {
-    const token = req.headers.authorization?.split(' ')[1];
+// Passport JWT authentication middleware
+const requireAuth = passport.authenticate('jwt', { session: false });
 
-    if (!token) {
-      return res.status(401).json({ error: 'Authentication required' });
-    }
-
-    const decoded = jwt.verify(token, process.env.JWT_SECRET);
-    req.user = decoded;
-    next();
-  } catch (error) {
-    return res.status(401).json({ error: 'Invalid or expired token' });
-  }
-}
-
+// Role-based authorization middleware
 function requireRole(role) {
   return (req, res, next) => {
     if (!req.user) {

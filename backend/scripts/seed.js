@@ -153,8 +153,8 @@ async function seed() {
     const oneYearAgo = new Date(now.getTime() - 365 * 24 * 60 * 60 * 1000);
     const oneYearAhead = new Date(now.getTime() + 365 * 24 * 60 * 60 * 1000);
 
-    // Generate at least 600 patient-owned appointments
-    for (let i = 0; i < 650; i++) {
+    // Generate at least 1000 patient-owned appointments
+    for (let i = 0; i < 1000; i++) {
       const patient = users[Math.floor(Math.random() * users.length)];
       const doctor = doctors[Math.floor(Math.random() * doctors.length)];
 

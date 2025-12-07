@@ -17,7 +17,7 @@
 .back-button {
   background: none;
   border: none;
-  color: #00b894;
+  color: #007a63;
   font-size: 1rem;
   cursor: pointer;
   padding: 0.5rem 0;
@@ -66,7 +66,7 @@
 }
 
 .nav-button {
-  background: #00b894;
+  background: #007a63;
   color: white;
   border: none;
   border-radius: 50%;
@@ -81,7 +81,7 @@
 }
 
 .nav-button:hover {
-  background: #00a085;
+  background: #006b54;
   transform: scale(1.1);
 }
 
@@ -103,7 +103,7 @@
 }
 
 .date-text:hover {
-  color: #00b894;
+  color: #007a63;
 }
 
 .date-full {
@@ -147,7 +147,7 @@
 }
 
 .time-slot.available:hover {
-  border-color: #00b894;
+  border-color: #007a63;
   background: #f0fdfb;
   transform: translateY(-2px);
   box-shadow: 0 4px 8px rgba(0, 184, 148, 0.2);

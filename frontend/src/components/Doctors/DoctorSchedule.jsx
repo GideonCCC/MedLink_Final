@@ -1,11 +1,10 @@
 import React, { useState, useEffect } from 'react';
-import { useParams, useNavigate, 
-  // useLocation
- } from 'react-router-dom';
+import { useParams, useNavigate } from 'react-router-dom';
 import PropTypes from 'prop-types';
 import { useAuth } from '../../context/AuthContext';
 import { apiClient } from '../../utils/apiClient';
 import './DoctorSchedule.css';
+import './DoctorsList.css';
 
 function DoctorSchedule() {
   const { id } = useParams();
@@ -100,105 +99,113 @@ function DoctorSchedule() {
   //   return today.getTime() === checkDate.getTime();
   // };
 
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+  const selectedDateStart = new Date(selectedDate);
+  selectedDateStart.setHours(0, 0, 0, 0);
+  const canGoPrevious = selectedDateStart.getTime() > today.getTime();
+
+  const availableSlots = slots.filter((slot) => slot.available);
+
   return (
-    <div className="doctor-schedule-page">
-      <div className="container">
-        <div className="page-header">
-          <button onClick={() => navigate('/doctors')} className="back-button">
-            ← Back to Doctors
+    <div className="doctors-list-page">
+      {/* Top Header with Brand and Close */}
+      <header className="doctors-page-header" role="banner">
+        <h1 className="page-brand">MedLink</h1>
+        <button onClick={() => navigate('/')} className="close-button">
+          ×
+        </button>
+      </header>
+
+      <main className="doctors-page-container" role="main">
+        <h2 className="page-title">Book an Appointment</h2>
+
+        {/* Date Navigation */}
+        <div className="date-navigation-bar">
+          <button
+            onClick={handlePreviousDay}
+            className="date-nav-button"
+            disabled={!canGoPrevious}
+            aria-label="Previous day"
+          >
+            ←
           </button>
-          {doctor && (
-            <>
-              <h1>{doctor.name}</h1>
-              <p className="doctor-specialty">{doctor.specialty}</p>
-            </>
-          )}
+          <div className="date-display-bar">
+            {formatDate(selectedDate)}
+          </div>
+          <button
+            onClick={handleNextDay}
+            className="date-nav-button"
+            aria-label="Next day"
+          >
+            →
+          </button>
         </div>
 
         {error && <div className="error-banner">{error}</div>}
 
-        <div className="schedule-container">
-          <div className="date-navigation">
-            <button
-              onClick={handlePreviousDay}
-              className="nav-button"
-              aria-label="Previous day"
-            >
-              ←
-            </button>
-            <div className="date-display">
-              <button onClick={handleToday} className="date-text">
-                {formatDate(selectedDate)}
-              </button>
-              <span className="date-full">
-                {selectedDate.toLocaleDateString('en-US', {
-                  month: 'short',
-                  day: 'numeric',
-                  year: 'numeric',
-                })}
-              </span>
-            </div>
-            <button
-              onClick={handleNextDay}
-              className="nav-button"
-              aria-label="Next day"
-            >
-              →
-            </button>
+        {loading ? (
+          <div className="loading">Loading schedule...</div>
+        ) : availableSlots.length === 0 ? (
+          <div className="empty-state">
+            <p>No slots available for this day.</p>
           </div>
-
-          {loading ? (
-            <div className="loading">Loading schedule...</div>
-          ) : (
-            <>
-              <div className="slots-grid">
-                {slots.length === 0 ? (
-                  <div className="empty-slots">
-                    <p>No available time slots for this day.</p>
-                  </div>
-                ) : (
-                  slots.map((slot, index) => (
-                    <TimeSlot
+        ) : (
+          <div className="doctors-schedule-list">
+            <div className="doctor-schedule-card">
+              <div className="doctor-profile">
+                <div className="doctor-avatar-large">
+                  <DoctorAvatar />
+                </div>
+                <div className="doctor-details">
+                  <h3 className="doctor-name-card">
+                    {doctor ? doctor.name : 'Loading...'}
+                  </h3>
+                  <p className="doctor-specialty-card">
+                    {doctor ? doctor.specialty || 'General Practice' : ''}
+                  </p>
+                </div>
+              </div>
+              <div className="doctor-time-slots">
+                <div className="slots-list">
+                  {availableSlots.map((slot, index) => (
+                    <button
                       key={index}
-                      slot={slot}
+                      className="time-slot-button"
                       onClick={() => handleSlotClick(slot)}
-                    />
-                  ))
-                )}
+                    >
+                      <span className="time-text">{slot.time}</span>
+                      <span className="est-text"> EST</span>
+                    </button>
+                  ))}
+                </div>
               </div>
-              <div className="schedule-note">
-                <p>Click on an available time slot to book an appointment</p>
-              </div>
-            </>
+            </div>
+            </div>
           )}
-        </div>
-      </div>
+      </main>
     </div>
   );
 }
 
-function TimeSlot({ slot, onClick }) {
+function DoctorAvatar() {
   return (
-    <button
-      className={`time-slot ${slot.available ? 'available' : 'booked'}`}
-      onClick={onClick}
-      disabled={!slot.available}
+    <svg
+      width="100%"
+      height="100%"
+      viewBox="0 0 100 100"
+      fill="none"
+      xmlns="http://www.w3.org/2000/svg"
     >
-      {slot.time}
-      {!slot.available && <span className="booked-label">Booked</span>}
-    </button>
+      <circle cx="50" cy="50" r="50" fill="#f0fdfb" />
+      <circle cx="50" cy="35" r="15" fill="#007a63" />
+      <path
+        d="M20 85 C20 65, 35 55, 50 55 C65 55, 80 65, 80 85"
+        fill="#007a63"
+      />
+    </svg>
   );
 }
-
-TimeSlot.propTypes = {
-  slot: PropTypes.shape({
-    time: PropTypes.string.isRequired,
-    available: PropTypes.bool.isRequired,
-    start: PropTypes.string.isRequired,
-    end: PropTypes.string.isRequired,
-  }).isRequired,
-  onClick: PropTypes.func.isRequired,
-};
 
 export default DoctorSchedule;
 

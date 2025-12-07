@@ -98,44 +98,96 @@ MedLink/
 ## Getting Started
 
 ### Prerequisites
-- Node.js v16+ and npm (or yarn)
-- MongoDB connection string (Atlas cluster or local instance)
+- **Node.js** v16+ and npm (or yarn)
+- **MongoDB** connection string (Atlas cluster or local instance)
+- **Git** (for cloning the repository)
 
-### Backend Setup
+### Step-by-Step Setup Instructions
+
+#### 1. Clone and Navigate to Project
+```bash
+git clone <repository-url>
+cd MedLink
+```
+
+#### 2. Backend Setup
+
+Navigate to the backend directory:
 ```bash
 cd backend
-npm install
-cp .env.example .env   # or create .env manually
 ```
 
-`.env` example:
+Install dependencies:
+```bash
+npm install
 ```
+
+Create environment file:
+```bash
+# Create .env file in the backend directory
+# You can copy from ENV_SETUP.md or create manually
+```
+
+**Required `.env` variables:**
+```env
 PORT=3001
 MONGODB_URI=mongodb://localhost:27017/clinic_appointments
-JWT_SECRET=change-me-in-production
+# OR for MongoDB Atlas:
+# MONGODB_URI=mongodb+srv://<username>:<password>@cluster.mongodb.net/clinic_appointments
+JWT_SECRET=your-secret-key-change-in-production-make-it-long-and-random
 NODE_ENV=development
 FRONTEND_ORIGIN=http://localhost:3000
 ```
 
-Seed and start the API:
+**Seed the database** (optional but recommended for testing):
 ```bash
-npm run cleanup   # optional reset
-npm run seed
-npm start         # serves http://localhost:3001
+npm run cleanup   # Clears existing data
+npm run seed      # Creates 1,000+ synthetic records
 ```
 
-### Frontend Setup
+**Start the backend server:**
 ```bash
-cd ../frontend
-npm install
-npm run dev       # serves http://localhost:3000 (Vite)
+npm start         # Server runs on http://localhost:3001
 ```
+
+#### 3. Frontend Setup
+
+Open a new terminal and navigate to the frontend directory:
+```bash
+cd frontend
+```
+
+Install dependencies:
+```bash
+npm install
+```
+
+Start the development server:
+```bash
+npm run dev       # Server runs on http://localhost:3000 (Vite)
+```
+
+The application will automatically open in your browser.
+
+#### 4. Production Build
 
 To build for production:
 ```bash
+cd frontend
 npm run build
-# Outputs static bundle to frontend/dist
+# Outputs optimized static bundle to frontend/dist
 ```
+
+To preview the production build:
+```bash
+npm run preview
+```
+
+### Screenshot
+
+![MedLink Application Screenshot](submission/Screenshot%202025-11-10%20at%2011.16.24%20AM.png)
+
+*Screenshot showing the MedLink home page with booking interface*
 
 ---
 
@@ -145,7 +197,7 @@ Running `npm run seed` (backend) creates:
 - 1 test patient (`emily@patient.com` / `password123`)
 - 50 additional patients
 - 15 doctors
-- ~650 appointments (increase volume if the rubric requires ≥1000 records)
+- 1,000+ appointments (synthetic data for testing)
 
 To reseed:
 ```bash
@@ -204,9 +256,11 @@ Indexes include compound lookups on `patientId/startDateTime` and `doctorId/star
 
 ## Quality & Tooling
 
-- **Linting:** `.eslintrc.json` in both backend and frontend; run `npm run lint` (frontend) if desired.
-- **Formatting:** `.prettierrc` ensures consistent styling; run Prettier before submission.
+- **Linting:** `.eslintrc.json` in both backend and frontend; run `npm run lint` (frontend) to check for errors.
+- **Formatting:** `.prettierrc` ensures consistent styling; run `npm run format` to format all code.
 - **PropTypes:** Every React component exports PropTypes to document props.
+- **Accessibility:** Full keyboard navigation support, ARIA labels, semantic HTML, and focus indicators.
+- **Design:** Consistent color palette, custom typography (Inter font), and responsive layout.
 - **No unused scaffolding:** Project structure trimmed to active components/routes.
 - **Secrets:** `.env` is ignored; do not commit credentials.
 

@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, useRef, useMemo } from 'react';
 import { useNavigate, useParams, useSearchParams } from 'react-router-dom';
 import { createPortal } from 'react-dom';
 import PropTypes from 'prop-types';
@@ -18,7 +18,21 @@ function AppointmentForm() {
   const [showTimeSlotModal, setShowTimeSlotModal] = useState(false);
   const [slots, setSlots] = useState([]);
   const [slotsLoading, setSlotsLoading] = useState(false);
-  const [selectedDate, setSelectedDate] = useState(new Date());
+  const [originalAppointment, setOriginalAppointment] = useState(null);
+  // Initialize selectedDate with clinic timezone date to avoid date offset issues
+  const getClinicDate = () => {
+    const now = new Date();
+    const estDateStr = now.toLocaleDateString('en-US', {
+      timeZone: 'America/New_York',
+      year: 'numeric',
+      month: '2-digit',
+      day: '2-digit',
+    });
+    const [month, day, year] = estDateStr.split('/');
+    return new Date(year, month - 1, day);
+  };
+  
+  const [selectedDate, setSelectedDate] = useState(getClinicDate());
 
   const [formData, setFormData] = useState({
     doctorId: '',
@@ -66,6 +80,8 @@ function AppointmentForm() {
       const appointments = data.appointments || [];
       const appointment = appointments.find((apt) => apt.id === id);
       if (appointment) {
+        // Store original appointment for validation
+        setOriginalAppointment(appointment);
         setFormData({
           doctorId: appointment.doctorId,
           startDateTime: convertUtcToLocalInput(appointment.startDateTime),
@@ -107,17 +123,63 @@ function AppointmentForm() {
 
   function handleChange(e) {
     const { name, value } = e.target;
+    
+    // If changing doctor, validate specialty match
+    if (name === 'doctorId') {
+      const selectedDoctor = doctors.find((d) => d.id === value);
+      
+      // If editing, check against original appointment
+      if (isEdit && originalAppointment) {
+        const originalDoctor = doctors.find((d) => d.id === originalAppointment.doctorId);
+        if (selectedDoctor && originalDoctor) {
+          if (selectedDoctor.specialty !== originalDoctor.specialty) {
+            setError('You can only change to a doctor within the same specialty/department.');
+            return;
+          }
+        }
+      }
+      
+      // If new appointment but already had a doctor selected, check specialty match
+      if (!isEdit && formData.doctorId && formData.doctorId !== value) {
+        const previousDoctor = doctors.find((d) => d.id === formData.doctorId);
+        if (selectedDoctor && previousDoctor) {
+          if (selectedDoctor.specialty !== previousDoctor.specialty) {
+            setError('You can only change to a doctor within the same specialty/department.');
+            return;
+          }
+        }
+      }
+    }
+    
     setFormData((prev) => ({ ...prev, [name]: value }));
+    setError(''); // Clear error when user makes changes
 
     // Auto-calculate end time if start time changes
     if (name === 'startDateTime' && value) {
       const start = new Date(value);
+      // Round to nearest 30 minutes
+      const minutes = start.getMinutes();
+      const roundedMinutes = minutes < 30 ? 0 : 30;
+      start.setMinutes(roundedMinutes, 0, 0);
+      
       const end = new Date(start.getTime() + 30 * 60 * 1000); // 30 minutes
       setFormData((prev) => ({
         ...prev,
-        startDateTime: value,
+        startDateTime: toInputValue(start),
         endDateTime: toInputValue(end),
       }));
+    }
+    
+    if (name === 'endDateTime' && value) {
+      // Ensure end time is exactly 30 minutes after start time
+      if (formData.startDateTime) {
+        const start = new Date(formData.startDateTime);
+        const end = new Date(start.getTime() + 30 * 60 * 1000);
+        setFormData((prev) => ({
+          ...prev,
+          endDateTime: toInputValue(end),
+        }));
+      }
     }
   }
 
@@ -126,11 +188,27 @@ function AppointmentForm() {
 
     try {
       setSlotsLoading(true);
-      const dateStr = selectedDate.toISOString().split('T')[0];
+      // Get date string in clinic timezone (America/New_York) to avoid date offset
+      // Use toLocaleDateString with timeZone to get the correct date
+      const dateStr = selectedDate.toLocaleDateString('en-CA', {
+        timeZone: 'America/New_York',
+        year: 'numeric',
+        month: '2-digit',
+        day: '2-digit',
+      }); // Returns YYYY-MM-DD format
       const data = await apiClient(
         `/api/doctors/${formData.doctorId}/availability?date=${dateStr}`
       );
-      setSlots(data.slots || []);
+      // Filter out past time slots on client side as additional safety measure
+      const now = new Date();
+      const oneHourFromNow = new Date(now.getTime() + 60 * 60 * 1000);
+      const filteredSlots = (data.slots || []).filter((slot) => {
+        if (!slot.available) return false;
+        // Filter out slots that are in the past or less than 1 hour from now
+        const slotStart = new Date(slot.start);
+        return slotStart.getTime() > oneHourFromNow.getTime();
+      });
+      setSlots(filteredSlots);
     } catch (err) {
       setError(err.message);
     } finally {
@@ -166,7 +244,10 @@ function AppointmentForm() {
   function formatDateTime(dateTimeString) {
     if (!dateTimeString) return '';
     const date = new Date(dateTimeString);
+    // Use the clinic timezone (America/New_York) for consistent date display
+    // This ensures the date shown matches what the user selected
     return date.toLocaleString('en-US', {
+      timeZone: 'America/New_York',
       weekday: 'short',
       month: 'short',
       day: 'numeric',
@@ -193,7 +274,9 @@ function AppointmentForm() {
       return 'Tomorrow';
     }
 
+    // Use clinic timezone for consistent date display
     return date.toLocaleDateString('en-US', {
+      timeZone: 'America/New_York',
       weekday: 'long',
       month: 'long',
       day: 'numeric',
@@ -222,12 +305,97 @@ function AppointmentForm() {
     }
   }, [selectedDate, showTimeSlotModal, formData.doctorId, loadDoctorSlots]);
 
+  // Validate appointment changes
+  async function validateAppointmentChanges() {
+    const errors = [];
+
+    // 1. Check if time slot is exactly 30 minutes
+    const startTime = new Date(formData.startDateTime);
+    const endTime = new Date(formData.endDateTime);
+    const durationMinutes = (endTime.getTime() - startTime.getTime()) / (1000 * 60);
+    
+    if (durationMinutes !== 30) {
+      errors.push('Appointment duration must be exactly 30 minutes.');
+    }
+
+    // 2. Check if minutes are in 30-minute increments (0 or 30)
+    const startMinutes = startTime.getMinutes();
+    const endMinutes = endTime.getMinutes();
+    
+    if (startMinutes !== 0 && startMinutes !== 30) {
+      errors.push('Start time must be on the hour or half-hour (e.g., 9:00 AM or 9:30 AM).');
+    }
+    
+    if (endMinutes !== 0 && endMinutes !== 30) {
+      errors.push('End time must be on the hour or half-hour (e.g., 9:30 AM or 10:00 AM).');
+    }
+
+    // 3. If editing, check if doctor is in same specialty
+    if (isEdit && originalAppointment) {
+      const selectedDoctor = doctors.find((d) => d.id === formData.doctorId);
+      const originalDoctor = doctors.find((d) => d.id === originalAppointment.doctorId);
+      
+      if (selectedDoctor && originalDoctor) {
+        if (selectedDoctor.specialty !== originalDoctor.specialty) {
+          errors.push('You can only change to a doctor within the same specialty/department.');
+        }
+      }
+    }
+
+    // 4. Check if time slot is within doctor's availability
+    if (formData.doctorId && formData.startDateTime && formData.endDateTime) {
+      try {
+        const startDate = new Date(formData.startDateTime);
+        const dateStr = startDate.toLocaleDateString('en-CA', {
+          timeZone: 'America/New_York',
+          year: 'numeric',
+          month: '2-digit',
+          day: '2-digit',
+        });
+        
+        const availabilityData = await apiClient(
+          `/api/doctors/${formData.doctorId}/availability?date=${dateStr}`
+        );
+        
+        const requestedStart = new Date(formData.startDateTime);
+        const requestedEnd = new Date(formData.endDateTime);
+        
+        // Check if the requested time slot matches any available slot
+        const isAvailable = availabilityData.slots.some((slot) => {
+          const slotStart = new Date(slot.start);
+          const slotEnd = new Date(slot.end);
+          return (
+            slot.available &&
+            slotStart.getTime() === requestedStart.getTime() &&
+            slotEnd.getTime() === requestedEnd.getTime()
+          );
+        });
+        
+        if (!isAvailable) {
+          errors.push('The selected time slot is not available. Please choose from the available time slots.');
+        }
+      } catch (err) {
+        errors.push('Unable to verify doctor availability. Please try again.');
+      }
+    }
+
+    return errors;
+  }
+
   async function handleSubmit(e) {
     e.preventDefault();
     setError('');
     setSubmitting(true);
 
     try {
+      // Validate appointment changes
+      const validationErrors = await validateAppointmentChanges();
+      if (validationErrors.length > 0) {
+        setError(validationErrors.join(' '));
+        setSubmitting(false);
+        return;
+      }
+
       const payload = {
         doctorId: formData.doctorId,
         startDateTime: new Date(formData.startDateTime).toISOString(),
@@ -254,6 +422,41 @@ function AppointmentForm() {
       setSubmitting(false);
     }
   }
+
+  // Memoize filtered doctors to ensure proper filtering
+  const filteredDoctors = useMemo(() => {
+    if (!doctors.length) return [];
+    
+    // If editing and have original appointment, filter by specialty
+    if (isEdit && originalAppointment) {
+      // Try different possible field names for doctorId
+      const doctorId = originalAppointment.doctorId || originalAppointment.doctor?.id || originalAppointment.doctorId;
+      
+      if (doctorId) {
+        const originalDoctor = doctors.find((d) => d.id === doctorId);
+        if (originalDoctor && originalDoctor.specialty) {
+          // Filter to only show doctors with the same specialty
+          return doctors.filter(
+            (doctor) => doctor.specialty === originalDoctor.specialty
+          );
+        }
+      }
+    }
+    
+    // If a doctor is already selected (even in new appointment), filter by that doctor's specialty
+    if (formData.doctorId) {
+      const selectedDoctor = doctors.find((d) => d.id === formData.doctorId);
+      if (selectedDoctor && selectedDoctor.specialty) {
+        // Only show doctors with the same specialty
+        return doctors.filter(
+          (doctor) => doctor.specialty === selectedDoctor.specialty
+        );
+      }
+    }
+    
+    // Otherwise, return all doctors
+    return doctors;
+  }, [doctors, isEdit, originalAppointment, formData.doctorId]);
 
   if (loading) {
     return <div className="form-loading">Loading...</div>;
@@ -282,10 +485,9 @@ function AppointmentForm() {
               value={formData.doctorId}
               onChange={handleChange}
               required
-              disabled={isEdit}
             >
               <option value="">Choose a doctor</option>
-              {doctors.map((doctor) => (
+              {filteredDoctors.map((doctor) => (
                 <option key={doctor.id} value={doctor.id}>
                   {doctor.name} - {doctor.specialty}
                 </option>
@@ -338,6 +540,9 @@ function AppointmentForm() {
                     toInputValue(new Date(Date.now() + 60 * 60 * 1000))
                   }
                 />
+                <p className="time-hint">
+                  ⏰ 30-minute rule: Time will automatically round to the nearest hour or 30 minutes (e.g., 10:15 → 10:00, 10:45 → 11:00)
+                </p>
               </div>
 
               <div className="form-group">
@@ -351,6 +556,9 @@ function AppointmentForm() {
                   required
                   min={formData.startDateTime || toInputValue(new Date())}
                 />
+                <p className="time-hint">
+                  End time is automatically set to 30 minutes after start time
+                </p>
               </div>
             </div>
           )}
@@ -423,24 +631,84 @@ function TimeSlotModal({
   onClose,
 }) {
   const doctor = doctors.find((d) => d.id === doctorId);
+  const modalRef = useRef(null);
 
   useEffect(() => {
     document.body.style.overflow = 'hidden';
+    // Focus the modal when it opens
+    if (modalRef.current) {
+      modalRef.current.focus();
+    }
     return () => {
       document.body.style.overflow = 'unset';
     };
   }, []);
 
+  useEffect(() => {
+    const handleEscape = (e) => {
+      if (e.key === 'Escape') {
+        onClose();
+      }
+    };
+
+    document.addEventListener('keydown', handleEscape);
+    return () => {
+      document.removeEventListener('keydown', handleEscape);
+    };
+  }, [onClose]);
+
+  const handleKeyDown = (e) => {
+    // Trap focus within modal
+    if (e.key === 'Tab') {
+      const focusableElements = modalRef.current?.querySelectorAll(
+        'button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])'
+      );
+      if (focusableElements && focusableElements.length > 0) {
+        const firstElement = focusableElements[0];
+        const lastElement = focusableElements[focusableElements.length - 1];
+
+        if (e.shiftKey) {
+          if (document.activeElement === firstElement) {
+            e.preventDefault();
+            lastElement.focus();
+          }
+        } else {
+          if (document.activeElement === lastElement) {
+            e.preventDefault();
+            firstElement.focus();
+          }
+        }
+      }
+    }
+  };
+
   return createPortal(
-    <div className="time-slot-modal-overlay" onClick={onClose}>
+    <div
+      className="time-slot-modal-overlay"
+      onClick={onClose}
+      role="presentation"
+      aria-hidden="false"
+    >
       <div
         className="time-slot-modal-content"
         onClick={(e) => e.stopPropagation()}
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="time-slot-modal-title"
+        tabIndex={-1}
+        ref={modalRef}
+        onKeyDown={handleKeyDown}
       >
-        <button className="time-slot-modal-close" onClick={onClose}>
+        <button
+          className="time-slot-modal-close"
+          onClick={onClose}
+          aria-label="Close time slot selection"
+        >
           ×
         </button>
-        <h2 className="time-slot-modal-title">Select New Time Slot</h2>
+        <h2 id="time-slot-modal-title" className="time-slot-modal-title">
+          Select New Time Slot
+        </h2>
         {doctor && (
           <p className="time-slot-modal-subtitle">
             {doctor.name} - {doctor.specialty}

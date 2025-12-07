@@ -117,6 +117,8 @@ function BookVisitStart() {
           <div className="search-input-wrapper" onClick={handleSearchInputClick}>
             <input
               type="text"
+              id="book-visit-search-input"
+              name="book-visit-search"
               placeholder="Search for doctors or specialties..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
@@ -183,25 +185,91 @@ function SearchModal({
   specialties,
   onSpecialtyClick,
 }) {
+  const modalRef = React.useRef(null);
+
   React.useEffect(() => {
     document.body.style.overflow = 'hidden';
+    // Focus the modal when it opens
+    if (modalRef.current) {
+      modalRef.current.focus();
+    }
     return () => {
       document.body.style.overflow = 'unset';
     };
   }, []);
 
+  React.useEffect(() => {
+    const handleEscape = (e) => {
+      if (e.key === 'Escape') {
+        onClose();
+      }
+    };
+
+    document.addEventListener('keydown', handleEscape);
+    return () => {
+      document.removeEventListener('keydown', handleEscape);
+    };
+  }, [onClose]);
+
+  const handleKeyDown = (e) => {
+    // Trap focus within modal
+    if (e.key === 'Tab') {
+      const focusableElements = modalRef.current?.querySelectorAll(
+        'button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])'
+      );
+      if (focusableElements && focusableElements.length > 0) {
+        const firstElement = focusableElements[0];
+        const lastElement = focusableElements[focusableElements.length - 1];
+
+        if (e.shiftKey) {
+          if (document.activeElement === firstElement) {
+            e.preventDefault();
+            lastElement.focus();
+          }
+        } else {
+          if (document.activeElement === lastElement) {
+            e.preventDefault();
+            firstElement.focus();
+          }
+        }
+      }
+    }
+  };
+
   return createPortal(
-    <div className="search-modal-overlay" onClick={onClose}>
-      <div className="search-modal" onClick={(e) => e.stopPropagation()}>
-        <button className="modal-close" onClick={onClose}>
+    <div
+      className="search-modal-overlay"
+      onClick={onClose}
+      role="presentation"
+      aria-hidden="false"
+    >
+      <div
+        className="search-modal"
+        onClick={(e) => e.stopPropagation()}
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="modal-title"
+        tabIndex={-1}
+        ref={modalRef}
+        onKeyDown={handleKeyDown}
+      >
+        <button
+          className="modal-close"
+          onClick={onClose}
+          aria-label="Close search modal"
+        >
           ×
         </button>
-        <h2 className="modal-title">What brings you in?</h2>
+        <h2 id="modal-title" className="modal-title">
+          What brings you in?
+        </h2>
         
         <form onSubmit={onSearchSubmit} className="modal-search-form">
           <div className="modal-search-wrapper">
             <input
               type="text"
+              id="book-visit-modal-search-input"
+              name="book-visit-modal-search"
               placeholder="Search for doctors or specialties..."
               value={searchQuery}
               onChange={(e) => onSearchChange(e.target.value)}
@@ -252,7 +320,20 @@ function DoctorsSelectionModal({ specialty, service, serviceMap, onClose, onSlot
   const [doctorsWithSchedules, setDoctorsWithSchedules] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
-  const [selectedDate, setSelectedDate] = useState(new Date());
+  // Initialize selectedDate with clinic timezone date to avoid date offset issues
+  const getClinicDate = () => {
+    const now = new Date();
+    const estDateStr = now.toLocaleDateString('en-US', {
+      timeZone: 'America/New_York',
+      year: 'numeric',
+      month: '2-digit',
+      day: '2-digit',
+    });
+    const [month, day, year] = estDateStr.split('/');
+    return new Date(year, month - 1, day);
+  };
+  
+  const [selectedDate, setSelectedDate] = useState(getClinicDate());
 
   useEffect(() => {
     loadDoctors();
@@ -266,12 +347,56 @@ function DoctorsSelectionModal({ specialty, service, serviceMap, onClose, onSlot
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [doctors, selectedDate]);
 
+  const modalRef = React.useRef(null);
+
   React.useEffect(() => {
     document.body.style.overflow = 'hidden';
+    // Focus the modal when it opens
+    if (modalRef.current) {
+      modalRef.current.focus();
+    }
     return () => {
       document.body.style.overflow = 'unset';
     };
   }, []);
+
+  React.useEffect(() => {
+    const handleEscape = (e) => {
+      if (e.key === 'Escape') {
+        onClose();
+      }
+    };
+
+    document.addEventListener('keydown', handleEscape);
+    return () => {
+      document.removeEventListener('keydown', handleEscape);
+    };
+  }, [onClose]);
+
+  const handleKeyDown = (e) => {
+    // Trap focus within modal
+    if (e.key === 'Tab') {
+      const focusableElements = modalRef.current?.querySelectorAll(
+        'button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])'
+      );
+      if (focusableElements && focusableElements.length > 0) {
+        const firstElement = focusableElements[0];
+        const lastElement = focusableElements[focusableElements.length - 1];
+
+        if (e.shiftKey) {
+          if (document.activeElement === firstElement) {
+            e.preventDefault();
+            lastElement.focus();
+          }
+        } else {
+          if (document.activeElement === lastElement) {
+            e.preventDefault();
+            firstElement.focus();
+          }
+        }
+      }
+    }
+  };
 
   async function loadDoctors() {
     try {
@@ -289,16 +414,34 @@ function DoctorsSelectionModal({ specialty, service, serviceMap, onClose, onSlot
 
   async function loadDoctorsSchedules() {
     try {
-      const dateStr = selectedDate.toISOString().split('T')[0];
+      // Get date string in clinic timezone (America/New_York) to avoid date offset
+      // Use toLocaleDateString with timeZone to get the correct date
+      const dateStr = selectedDate.toLocaleDateString('en-CA', {
+        timeZone: 'America/New_York',
+        year: 'numeric',
+        month: '2-digit',
+        day: '2-digit',
+      }); // Returns YYYY-MM-DD format
+      const now = new Date();
+      const oneHourFromNow = new Date(now.getTime() + 60 * 60 * 1000);
+      
       const schedules = await Promise.all(
         doctors.map(async (doctor) => {
           try {
             const data = await apiClient(
               `/api/doctors/${doctor.id}/availability?date=${dateStr}`
             );
+            // Filter out past time slots on client side as additional safety measure
+            const filteredSlots = data.slots.filter((slot) => {
+              if (!slot.available) return false;
+              // Filter out slots that are in the past or less than 1 hour from now
+              const slotStart = new Date(slot.start);
+              return slotStart.getTime() > oneHourFromNow.getTime();
+            });
+            
             return {
               ...doctor,
-              availableSlots: data.slots.filter((slot) => slot.available),
+              availableSlots: filteredSlots,
             };
           } catch (err) {
             return { ...doctor, availableSlots: [] };
@@ -324,7 +467,9 @@ function DoctorsSelectionModal({ specialty, service, serviceMap, onClose, onSlot
   }
 
   function formatDate(date) {
+    // Use clinic timezone (America/New_York) for consistent date display
     return date.toLocaleDateString('en-US', {
+      timeZone: 'America/New_York',
       weekday: 'long',
       month: 'long',
       day: 'numeric',
@@ -342,12 +487,32 @@ function DoctorsSelectionModal({ specialty, service, serviceMap, onClose, onSlot
   );
 
   return createPortal(
-    <div className="doctors-modal-overlay" onClick={onClose}>
-      <div className="doctors-modal-content" onClick={(e) => e.stopPropagation()}>
-        <button className="doctors-modal-close" onClick={onClose}>
+    <div
+      className="doctors-modal-overlay"
+      onClick={onClose}
+      role="presentation"
+      aria-hidden="false"
+    >
+      <div
+        className="doctors-modal-content"
+        onClick={(e) => e.stopPropagation()}
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="doctors-modal-title"
+        tabIndex={-1}
+        ref={modalRef}
+        onKeyDown={handleKeyDown}
+      >
+        <button
+          className="doctors-modal-close"
+          onClick={onClose}
+          aria-label="Close doctor selection modal"
+        >
           ×
         </button>
-        <h2 className="doctors-modal-title">Book an Appointment</h2>
+        <h2 id="doctors-modal-title" className="doctors-modal-title">
+          Book an Appointment
+        </h2>
 
         {/* Date Navigation */}
         <div className="date-navigation-bar">
@@ -461,10 +626,10 @@ function DoctorAvatar() {
       xmlns="http://www.w3.org/2000/svg"
     >
       <circle cx="50" cy="50" r="50" fill="#f0fdfb" />
-      <circle cx="50" cy="35" r="15" fill="#00b894" />
+      <circle cx="50" cy="35" r="15" fill="#007a63" />
       <path
         d="M20 85 C20 65, 35 55, 50 55 C65 55, 80 65, 80 85"
-        fill="#00b894"
+        fill="#007a63"
       />
     </svg>
   );

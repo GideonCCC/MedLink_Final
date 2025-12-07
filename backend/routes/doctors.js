@@ -52,6 +52,50 @@ function formatTimeInZone(date, timeZone) {
   }).format(date);
 }
 
+// Get current date/time in clinic timezone as a Date object
+// This creates a Date that represents the current moment in the clinic timezone
+function getCurrentTimeInZone(timeZone) {
+  const now = new Date();
+  const dtf = new Intl.DateTimeFormat('en-US', {
+    timeZone,
+    hour12: false,
+    year: 'numeric',
+    month: '2-digit',
+    day: '2-digit',
+    hour: '2-digit',
+    minute: '2-digit',
+    second: '2-digit',
+  });
+
+  const parts = dtf.formatToParts(now).reduce((acc, part) => {
+    if (part.type !== 'literal') {
+      acc[part.type] = part.value;
+    }
+    return acc;
+  }, {});
+
+  const year = Number(parts.year);
+  const month = Number(parts.month);
+  const day = Number(parts.day);
+  const hour = Number(parts.hour);
+  const minute = Number(parts.minute);
+  const second = Number(parts.second);
+
+  // Create a Date object representing the current time in the clinic timezone
+  // This will be used to compare with slot times
+  const clinicTime = createZonedDate(year, month, day, hour, minute, timeZone);
+  
+  return {
+    year,
+    month,
+    day,
+    hour,
+    minute,
+    second,
+    asDate: clinicTime,
+  };
+}
+
 // Get all specialties (public - no auth required)
 router.get('/specialties', async (req, res) => {
   try {
@@ -60,7 +104,16 @@ router.get('/specialties', async (req, res) => {
       .collection('users')
       .distinct('specialty', { role: 'doctor', specialty: { $ne: null } });
 
-    res.json(specialties.sort());
+    // Remove duplicates (case-insensitive) and filter out empty values
+    const uniqueSpecialties = Array.from(
+      new Map(
+        specialties
+          .filter((spec) => spec && typeof spec === 'string' && spec.trim())
+          .map((spec) => [spec.toLowerCase().trim(), spec.trim()])
+      ).values()
+    );
+
+    res.json(uniqueSpecialties.sort());
   } catch (error) {
     console.error('Get specialties error:', error);
     res.status(500).json({ error: 'Internal server error' });
@@ -71,11 +124,18 @@ router.get('/specialties', async (req, res) => {
 router.get('/', async (req, res) => {
   try {
     const db = getDatabase();
-    const { specialty } = req.query;
+    const { specialty, name } = req.query;
 
     const query = { role: 'doctor' };
+    
+    // Support searching by specialty
     if (specialty) {
       query.specialty = { $regex: specialty, $options: 'i' };
+    }
+    
+    // Support searching by doctor name
+    if (name) {
+      query.name = { $regex: name, $options: 'i' };
     }
 
     const doctors = await db
@@ -174,8 +234,36 @@ router.get('/:id/availability', async (req, res) => {
     }
 
     const slots = [];
-    const now = new Date();
-    const oneHourFromNow = new Date(now.getTime() + 60 * 60 * 1000);
+    // Get current time in clinic timezone
+    const clinicNow = getCurrentTimeInZone(CLINIC_TIME_ZONE);
+    const oneHourFromNow = new Date(clinicNow.asDate.getTime() + 60 * 60 * 1000);
+    
+    // Also check if the requested date is in the past
+    const requestedDate = createZonedDate(year, month, day, 0, 0, CLINIC_TIME_ZONE);
+    const todayStart = createZonedDate(
+      clinicNow.year,
+      clinicNow.month,
+      clinicNow.day,
+      0,
+      0,
+      CLINIC_TIME_ZONE
+    );
+    
+    // If the requested date is before today, skip all slots
+    if (requestedDate < todayStart) {
+      return res.json({
+        doctor: {
+          id: doctor._id.toString(),
+          name: doctor.name,
+          specialty: doctor.specialty,
+        },
+        date: date,
+        slots: [],
+      });
+    }
+    
+    // Check if requested date is today
+    const isToday = requestedDate.getTime() === todayStart.getTime();
 
     const normalizedTimes = Array.from(
       new Set(
@@ -215,7 +303,30 @@ router.get('/:id/availability', async (req, res) => {
         continue;
       }
 
-      if (slotStart < oneHourFromNow) {
+      // Filter out past time slots and slots less than 1 hour from now
+      // Get current time - both slotStart and now are Date objects with UTC timestamps
+      const now = new Date();
+      const oneHourFromNow = new Date(now.getTime() + 60 * 60 * 1000);
+      
+      // Always filter out slots that are in the past (before or equal to current time)
+      // slotStart.getTime() returns UTC timestamp, now.getTime() returns UTC timestamp
+      // So the comparison should be accurate
+      const slotTimestamp = slotStart.getTime();
+      const nowTimestamp = now.getTime();
+      const oneHourFromNowTimestamp = oneHourFromNow.getTime();
+      
+      // Debug logging (temporary - remove after fixing)
+      if (isToday && slotTimestamp > nowTimestamp - 3600000) {
+        console.log(`[DEBUG] Slot ${timeString} on ${date}: slotTimestamp=${slotTimestamp}, nowTimestamp=${nowTimestamp}, diff=${slotTimestamp - nowTimestamp}ms, slotStart=${slotStart.toISOString()}, now=${now.toISOString()}`);
+      }
+      
+      // Filter out past slots (slots that are before or equal to current time)
+      if (slotTimestamp <= nowTimestamp) {
+        continue;
+      }
+      
+      // Filter out slots less than 1 hour from now
+      if (slotTimestamp <= oneHourFromNowTimestamp) {
         continue;
       }
 

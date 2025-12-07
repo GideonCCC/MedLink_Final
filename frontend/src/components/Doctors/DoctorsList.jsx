@@ -41,9 +41,20 @@ function DoctorsList() {
     try {
       setLoading(true);
       const specialtyParam = searchParams.get('specialty');
+      const nameParam = searchParams.get('name');
       const specialty = specialtyParam || (service ? serviceMap[service] : null);
-      const params = specialty ? `?specialty=${encodeURIComponent(specialty)}` : '';
-      const data = await apiClient(`/api/doctors${params}`);
+      
+      // Build query params
+      const params = new URLSearchParams();
+      if (specialty) {
+        params.append('specialty', specialty);
+      }
+      if (nameParam) {
+        params.append('name', nameParam);
+      }
+      
+      const queryString = params.toString();
+      const data = await apiClient(`/api/doctors${queryString ? `?${queryString}` : ''}`);
       setDoctors(data);
     } catch (err) {
       setError(err.message);
@@ -128,14 +139,14 @@ function DoctorsList() {
   return (
     <div className="doctors-list-page">
       {/* Top Header with Brand and Close */}
-      <div className="doctors-page-header">
+      <header className="doctors-page-header" role="banner">
         <h1 className="page-brand">MedLink</h1>
         <button onClick={() => navigate('/')} className="close-button">
           ×
         </button>
-      </div>
+      </header>
 
-      <div className="doctors-page-container">
+      <main className="doctors-page-container" role="main">
         <h2 className="page-title">Book an Appointment</h2>
 
         {/* Date Navigation */}
@@ -166,7 +177,13 @@ function DoctorsList() {
           <div className="loading">Loading doctors...</div>
         ) : doctorsWithSchedules.length === 0 ? (
           <div className="empty-state">
-            <p>No doctors found for this service.</p>
+            <p>
+              {searchParams.get('name')
+                ? `No doctors found matching "${searchParams.get('name')}".`
+                : searchParams.get('specialty')
+                  ? `No doctors found for specialty "${searchParams.get('specialty')}".`
+                  : 'No doctors found for this service.'}
+            </p>
           </div>
         ) : (() => {
           // Filter doctors with available slots
@@ -194,7 +211,7 @@ function DoctorsList() {
             </div>
           );
         })()}
-      </div>
+      </main>
     </div>
   );
 }
@@ -239,10 +256,10 @@ function DoctorAvatar() {
       xmlns="http://www.w3.org/2000/svg"
     >
       <circle cx="50" cy="50" r="50" fill="#f0fdfb" />
-      <circle cx="50" cy="35" r="15" fill="#00b894" />
+      <circle cx="50" cy="35" r="15" fill="#007a63" />
       <path
         d="M20 85 C20 65, 35 55, 50 55 C65 55, 80 65, 80 85"
-        fill="#00b894"
+        fill="#007a63"
       />
     </svg>
   );

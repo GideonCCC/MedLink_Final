@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { createPortal } from 'react-dom';
 import { Link } from 'react-router-dom';
 import PropTypes from 'prop-types';
@@ -68,7 +68,7 @@ function PatientDashboard() {
         ) : upcomingAppointments.length === 0 ? (
           <div className="empty-state">
             <p>You don&apos;t have any upcoming appointments.</p>
-            <Link to="/patient/appointments/new" className="link-button">
+            <Link to="/patient/book-visit" className="link-button">
               Book your first appointment
             </Link>
           </div>
@@ -98,7 +98,9 @@ function PatientDashboard() {
 function AppointmentCard({ appointment, onCancel }) {
   function formatDate(dateString) {
     const date = new Date(dateString);
+    // Use clinic timezone (America/New_York) for consistent date display
     return date.toLocaleDateString('en-US', {
+      timeZone: 'America/New_York',
       weekday: 'short',
       year: 'numeric',
       month: 'short',
@@ -158,6 +160,8 @@ AppointmentCard.propTypes = {
 };
 
 function CancelConfirmModal({ onConfirm, onDismiss }) {
+  const modalRef = useRef(null);
+
   useEffect(() => {
     const handleEscape = (e) => {
       if (e.key === 'Escape') {
@@ -166,25 +170,77 @@ function CancelConfirmModal({ onConfirm, onDismiss }) {
     };
     document.addEventListener('keydown', handleEscape);
     document.body.style.overflow = 'hidden';
+    // Focus the modal when it opens
+    if (modalRef.current) {
+      modalRef.current.focus();
+    }
     return () => {
       document.removeEventListener('keydown', handleEscape);
       document.body.style.overflow = 'unset';
     };
   }, [onDismiss]);
 
+  const handleKeyDown = (e) => {
+    // Trap focus within modal
+    if (e.key === 'Tab') {
+      const focusableElements = modalRef.current?.querySelectorAll(
+        'button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])'
+      );
+      if (focusableElements && focusableElements.length > 0) {
+        const firstElement = focusableElements[0];
+        const lastElement = focusableElements[focusableElements.length - 1];
+
+        if (e.shiftKey) {
+          if (document.activeElement === firstElement) {
+            e.preventDefault();
+            lastElement.focus();
+          }
+        } else {
+          if (document.activeElement === lastElement) {
+            e.preventDefault();
+            firstElement.focus();
+          }
+        }
+      }
+    }
+  };
+
   return createPortal(
-    <div className="modal-overlay" onClick={onDismiss}>
-      <div className="modal-content" onClick={(e) => e.stopPropagation()}>
-        <h3>Cancel Appointment?</h3>
-        <p>
+    <div
+      className="modal-overlay"
+      onClick={onDismiss}
+      role="presentation"
+      aria-hidden="false"
+    >
+      <div
+        className="modal-content"
+        onClick={(e) => e.stopPropagation()}
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="cancel-modal-title"
+        aria-describedby="cancel-modal-description"
+        tabIndex={-1}
+        ref={modalRef}
+        onKeyDown={handleKeyDown}
+      >
+        <h3 id="cancel-modal-title">Cancel Appointment?</h3>
+        <p id="cancel-modal-description">
           Are you sure you want to cancel this appointment? This action cannot
           be undone.
         </p>
         <div className="modal-actions">
-          <button onClick={onDismiss} className="modal-cancel-button">
+          <button
+            onClick={onDismiss}
+            className="modal-cancel-button"
+            aria-label="Keep appointment"
+          >
             Keep
           </button>
-          <button onClick={onConfirm} className="modal-confirm-button">
+          <button
+            onClick={onConfirm}
+            className="modal-confirm-button"
+            aria-label="Cancel appointment"
+          >
             Cancel
           </button>
         </div>

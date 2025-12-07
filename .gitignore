@@ -1,10 +1,32 @@
+# Dependencies
 node_modules/
-.DS_Store
-*.log
+package-lock.json
+
+# Environment variables
 .env
+.env.local
+.env.*.local
+
+# Build outputs
 dist/
-*.env.local
-.vite/
+build/
+*.log
+
+# IDE
+.vscode/
+.idea/
 *.swp
 *.swo
 *~
+
+# OS
+.DS_Store
+Thumbs.db
+
+# MongoDB data
+mongo_data/
+*.db
+
+# Temporary files
+*.tmp
+*.temp

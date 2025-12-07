@@ -65,7 +65,7 @@
 
 .filter-group input:focus,
 .filter-group select:focus {
-  border-color: #00b894;
+  border-color: #007a63;
   outline: none;
 }
 
@@ -127,14 +127,16 @@
   margin-bottom: 1rem;
 }
 
-.history-item-header h3 {
+.history-item-header h2 {
   font-size: 1.2rem;
   color: #333;
   margin-bottom: 0.25rem;
 }
 
-.specialty {
-  color: #999;
+.specialty,
+p.specialty,
+.history-item .specialty {
+  color: #000000; /* Pure black for maximum WCAG AA contrast (21:1 on white background) */
   font-size: 0.9rem;
 }
 
@@ -211,15 +213,19 @@
 
 .page-button {
   padding: 0.75rem 1.5rem;
-  background-color: #00b894;
+  background-color: #007a63; /* Same dark green as main page logo (WCAG AA contrast with white text) */
   color: white;
   border-radius: 6px;
   font-weight: 500;
   transition: background-color 0.2s;
 }
 
+.page-button:hover {
+  background-color: #006b54; /* Darker on hover */
+}
+
 .page-button:hover:not(:disabled) {
-  background-color: #00a085;
+  background-color: #006b54;
 }
 
 .page-button:disabled {

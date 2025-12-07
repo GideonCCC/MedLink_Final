@@ -19,7 +19,7 @@
 .page-brand {
   font-size: 1.5rem;
   font-weight: 700;
-  color: #00b894;
+  color: #007a63;
   margin: 0;
   flex: 1;
   text-align: center;
@@ -79,7 +79,7 @@
 }
 
 .date-nav-button {
-  background: #00b894;
+  background: #007a63;
   color: white;
   border: none;
   border-radius: 50%;
@@ -94,7 +94,7 @@
 }
 
 .date-nav-button:hover:not(:disabled) {
-  background: #00a085;
+  background: #006b54;
   transform: scale(1.1);
 }
 

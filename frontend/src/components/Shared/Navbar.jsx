@@ -1,5 +1,6 @@
 import React, { useCallback } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
+import PropTypes from 'prop-types';
 import { useAuth } from '../../context/AuthContext';
 import './Navbar.css';
 
@@ -65,5 +66,9 @@ function Navbar() {
     </nav>
   );
 }
+
+Navbar.propTypes = {
+  // Navbar component doesn't receive props, but we document it for consistency
+};
 
 export default Navbar;

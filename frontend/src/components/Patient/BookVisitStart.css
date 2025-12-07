@@ -34,7 +34,9 @@
 .search-input-wrapper {
   position: relative;
   display: flex;
+  flex-direction: row;
   align-items: center;
+  justify-content: space-between;
   border: 2px solid #e0e0e0;
   border-radius: 8px;
   background: white;
@@ -43,16 +45,53 @@
 }
 
 .search-input-wrapper:hover {
-  border-color: #00b894;
+  border-color: #e0e0e0;
 }
 
-.search-input {
+.book-visit-start .search-input {
   flex: 1;
   padding: 0.875rem 1rem;
-  border: none;
-  outline: none;
+  border: 0;
+  border-width: 0;
+  border-style: none;
+  outline: 0;
+  outline-width: 0;
+  outline-style: none;
   font-size: 1rem;
   background: transparent;
+  box-shadow: none;
+  -webkit-appearance: none;
+  -moz-appearance: none;
+  appearance: none;
+}
+
+.book-visit-start .search-input:focus {
+  border: 0;
+  border-width: 0;
+  border-style: none;
+  outline: 0;
+  outline-width: 0;
+  outline-style: none;
+  box-shadow: none;
+}
+
+.book-visit-start .search-input:focus-visible {
+  outline: 0;
+  outline-width: 0;
+  outline-style: none;
+  border: 0;
+  border-width: 0;
+  border-style: none;
+  box-shadow: none;
+}
+
+.book-visit-start .search-input:hover {
+  border: 0;
+  border-width: 0;
+  border-style: none;
+  outline: 0;
+  outline-width: 0;
+  outline-style: none;
 }
 
 .search-icon-button {
@@ -64,6 +103,8 @@
   display: flex;
   align-items: center;
   justify-content: center;
+  flex-shrink: 0;
+  margin-left: auto;
 }
 
 .common-reasons {
@@ -183,15 +224,42 @@
 }
 
 .modal-search-wrapper:focus-within {
-  border-color: #00b894;
+  border-color: #e0e0e0;
 }
 
 .modal-search-input {
   flex: 1;
   padding: 0.875rem 1rem;
-  border: none;
-  outline: none;
+  border: 0;
+  border-width: 0;
+  border-style: none;
+  outline: 0;
+  outline-width: 0;
+  outline-style: none;
   font-size: 1rem;
+  box-shadow: none;
+  -webkit-appearance: none;
+  -moz-appearance: none;
+  appearance: none;
+}
+
+.modal-search-input:focus {
+  border: 0;
+  border-width: 0;
+  border-style: none;
+  outline: 0;
+  outline-width: 0;
+  outline-style: none;
+  box-shadow: none;
+}
+
+.modal-search-input:focus-visible {
+  outline: 0;
+  outline-width: 0;
+  outline-style: none;
+  border: 0;
+  border-width: 0;
+  border-style: none;
 }
 
 .modal-search-button {
@@ -238,7 +306,7 @@
 }
 
 .specialty-item:hover {
-  background: #00b894;
+  background: #007a63;
   color: white;
 }
 
@@ -322,7 +390,7 @@
 }
 
 .date-nav-button {
-  background: #00b894;
+  background: #007a63;
   color: white;
   border: none;
   border-radius: 50%;
@@ -338,7 +406,7 @@
 }
 
 .date-nav-button:hover:not(:disabled) {
-  background: #00a085;
+  background: #006b54;
   transform: scale(1.1);
 }
 

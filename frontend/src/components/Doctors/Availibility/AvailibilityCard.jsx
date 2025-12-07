@@ -27,23 +27,77 @@ export default function AvailibilityCard({
     setNewAvailability(newSet);
   };
 
+  const selectedCount = availability.size;
+  const totalSlots = slots.length;
+
+  // Separate slots into morning (9:00 - 12:00) and afternoon (12:30 - 17:00)
+  const morningSlots = slots.filter((time) => {
+    const hour = parseInt(time.split(':')[0]);
+    return hour < 12;
+  });
+
+  const afternoonSlots = slots.filter((time) => {
+    const hour = parseInt(time.split(':')[0]);
+    return hour >= 12;
+  });
+
   return (
     <div className="day-card">
-      <div className="day-header">{day}</div>
-      <div className="slots-grid">
-        {slots.map((time) => {
-          const isSelected = availability.has(time);
-          return (
-            <button
-              key={time}
-              type="button"
-              className={`slot-button ${isSelected ? 'selected' : ''}`}
-              onClick={() => toggleSlot(time)}
-            >
-              {time}
-            </button>
-          );
-        })}
+      <div className="day-header">
+        {day}
+        {selectedCount > 0 && (
+          <span className="selection-count">
+            {selectedCount} of {totalSlots} slots selected
+          </span>
+        )}
+      </div>
+
+      {/* Morning Section */}
+      <div className="time-section">
+        <div className="time-section-header">
+          <span className="time-section-title">Morning • 9:00 AM - 12:00 PM</span>
+        </div>
+        <div className="slots-grid" role="group" aria-label={`${day} morning availability slots`}>
+          {morningSlots.map((time) => {
+            const isSelected = availability.has(time);
+            return (
+              <button
+                key={time}
+                type="button"
+                className={`slot-button ${isSelected ? 'selected' : ''}`}
+                onClick={() => toggleSlot(time)}
+                aria-pressed={isSelected}
+                aria-label={`${time} - ${isSelected ? 'Available' : 'Not available'}`}
+              >
+                {time}
+              </button>
+            );
+          })}
+        </div>
+      </div>
+
+      {/* Afternoon Section */}
+      <div className="time-section">
+        <div className="time-section-header">
+          <span className="time-section-title">Afternoon • 12:30 PM - 5:00 PM</span>
+        </div>
+        <div className="slots-grid" role="group" aria-label={`${day} afternoon availability slots`}>
+          {afternoonSlots.map((time) => {
+            const isSelected = availability.has(time);
+            return (
+              <button
+                key={time}
+                type="button"
+                className={`slot-button ${isSelected ? 'selected' : ''}`}
+                onClick={() => toggleSlot(time)}
+                aria-pressed={isSelected}
+                aria-label={`${time} - ${isSelected ? 'Available' : 'Not available'}`}
+              >
+                {time}
+              </button>
+            );
+          })}
+        </div>
       </div>
     </div>
   );

@@ -1,25 +1,82 @@
 import { useCallback, useEffect, useState } from 'react';
+import PropTypes from 'prop-types';
 import { apiClient } from '../../../utils/apiClient';
 import './UpcomingAppointments.css';
 import UpcomingAppointmentCard from './UpcomingAppointmentCard';
 
 export default function UpcomingAppointments() {
   const [appointments, setAppointments] = useState([]);
+  const [allAppointments, setAllAppointments] = useState([]);
   const [currentAppointment, setCurrentAppointment] = useState({});
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
+  const [dateFilter, setDateFilter] = useState('all');
+
+  const filterAppointmentsByDate = useCallback((appts, filter) => {
+    if (!appts || appts.length === 0) {
+      setAppointments([]);
+      return;
+    }
+
+    const now = new Date();
+    now.setHours(0, 0, 0, 0);
+
+    let filtered = [];
+
+    switch (filter) {
+      case 'next-week': {
+        const nextWeek = new Date(now);
+        nextWeek.setDate(nextWeek.getDate() + 7);
+        filtered = appts.filter((apt) => {
+          const aptDate = new Date(apt.startDateTime);
+          return aptDate >= now && aptDate <= nextWeek;
+        });
+        break;
+      }
+      case 'next-month': {
+        const nextMonth = new Date(now);
+        nextMonth.setMonth(nextMonth.getMonth() + 1);
+        filtered = appts.filter((apt) => {
+          const aptDate = new Date(apt.startDateTime);
+          return aptDate >= now && aptDate <= nextMonth;
+        });
+        break;
+      }
+      case 'next-3-months': {
+        const next3Months = new Date(now);
+        next3Months.setMonth(next3Months.getMonth() + 3);
+        filtered = appts.filter((apt) => {
+          const aptDate = new Date(apt.startDateTime);
+          return aptDate >= now && aptDate <= next3Months;
+        });
+        break;
+      }
+      case 'all':
+      default:
+        filtered = appts;
+        break;
+    }
+
+    setAppointments(filtered);
+  }, []);
 
   const loadAppointments = useCallback(async () => {
     try {
       setLoading(true);
       const data = await apiClient('/api/doctor/upcoming-appointments');
-      setAppointments(data.appointments);
+      setAllAppointments(data.appointments);
+      filterAppointmentsByDate(data.appointments, dateFilter);
     } catch (err) {
       setError(err.message);
     } finally {
       setLoading(false);
     }
-  }, []);
+  }, [dateFilter, filterAppointmentsByDate]);
+
+  const handleFilterChange = (filter) => {
+    setDateFilter(filter);
+    filterAppointmentsByDate(allAppointments, filter);
+  };
 
   const loadCurrentAppointment = useCallback(async () => {
     try {
@@ -57,51 +114,97 @@ export default function UpcomingAppointments() {
   );
 
   return (
-    <>
-      {Object.keys(currentAppointment).length > 0 && (
-        <div className="current-appointment">
-          <h1>Current Appointment</h1>
-          <UpcomingAppointmentCard
-            type="current"
-            appointment={currentAppointment}
-            onCancel={async () => {
-              setLoading(true);
-              await apiClient(
-                `/api/doctor/appointment/no-show/${currentAppointment._id}`,
-                { method: 'PUT' }
-              );
-              setCurrentAppointment({});
-              setLoading(false);
-            }}
-          />
-        </div>
-      )}
-      <div className="upcoming-appointments">
-        {error && <div className="error-message">{error}</div>}
-        <div className="info-container">
-          <h1>Upcoming Appointments</h1>
-        </div>
-        {loading ? (
-          <div className="loading">Loading appointments...</div>
-        ) : appointments.length === 0 ? (
-          <div className="empty-state">
-            <p>You don&apos;t have any upcoming appointments.</p>
-          </div>
-        ) : (
-          <div className="appointments-grid">
-            {appointments.map((appointment) => (
+    <div className="upcoming-appointments">
+        {error && <div className="error-message" role="alert">{error}</div>}
+        
+        {Object.keys(currentAppointment).length > 0 && (
+          <div className="upcoming-section">
+            <div className="current-appointment">
+              <h1>Current Appointment</h1>
               <UpcomingAppointmentCard
-                key={appointment._id}
-                type="upcoming"
-                appointment={appointment}
-                onCancel={() => {
-                  cancelAppointment(appointment._id);
+                type="current"
+                appointment={currentAppointment}
+                onCancel={async () => {
+                  setLoading(true);
+                  await apiClient(
+                    `/api/doctor/appointment/no-show/${currentAppointment._id}`,
+                    { method: 'PUT' }
+                  );
+                  setCurrentAppointment({});
+                  setLoading(false);
                 }}
               />
-            ))}
+            </div>
           </div>
         )}
-      </div>
-    </>
+
+        <div className="upcoming-section">
+          <div className="info-container">
+            <h1>Upcoming Appointments</h1>
+            <div className="date-filters">
+              <button
+                type="button"
+                className={`filter-button ${dateFilter === 'all' ? 'active' : ''}`}
+                onClick={() => handleFilterChange('all')}
+                aria-pressed={dateFilter === 'all'}
+              >
+                All Upcoming
+              </button>
+              <button
+                type="button"
+                className={`filter-button ${dateFilter === 'next-week' ? 'active' : ''}`}
+                onClick={() => handleFilterChange('next-week')}
+                aria-pressed={dateFilter === 'next-week'}
+              >
+                Next Week
+              </button>
+              <button
+                type="button"
+                className={`filter-button ${dateFilter === 'next-month' ? 'active' : ''}`}
+                onClick={() => handleFilterChange('next-month')}
+                aria-pressed={dateFilter === 'next-month'}
+              >
+                Next Month
+              </button>
+              <button
+                type="button"
+                className={`filter-button ${dateFilter === 'next-3-months' ? 'active' : ''}`}
+                onClick={() => handleFilterChange('next-3-months')}
+                aria-pressed={dateFilter === 'next-3-months'}
+              >
+                Next 3 Months
+              </button>
+            </div>
+          </div>
+          {loading ? (
+            <div className="loading">Loading appointments...</div>
+          ) : appointments.length === 0 ? (
+            <div className="empty-state">
+              <p>
+                {dateFilter === 'all'
+                  ? "You don't have any upcoming appointments."
+                  : `No appointments found for the selected time period.`}
+              </p>
+            </div>
+          ) : (
+            <div className="appointments-grid">
+              {appointments.map((appointment) => (
+                <UpcomingAppointmentCard
+                  key={appointment._id}
+                  type="upcoming"
+                  appointment={appointment}
+                  onCancel={() => {
+                    cancelAppointment(appointment._id);
+                  }}
+                />
+              ))}
+            </div>
+          )}
+        </div>
+    </div>
   );
 }
+
+UpcomingAppointments.propTypes = {
+  // UpcomingAppointments component doesn't receive props, but we document it for consistency
+};

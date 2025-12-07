@@ -28,7 +28,137 @@
 }
 
 .past-appointments {
-  max-height: 80vh;
-  height: 100%;
-  overflow: scroll;
+  min-height: calc(100vh - 80px);
+  background-color: transparent;
+  padding: 0;
+  width: 100%;
+  max-width: 100%;
+}
+
+.info-container {
+  margin-bottom: 1.5rem;
+  width: 100%;
+  padding: 0;
+}
+
+.info-container h1 {
+  font-size: 1.5rem;
+  font-weight: 600;
+  color: #333;
+  margin: 0 0 1.5rem 0;
+}
+
+.search-container {
+  margin-bottom: 1.5rem;
+  width: 100%;
+}
+
+.search-input {
+  width: 100%;
+  max-width: 500px;
+  padding: 0.75rem 1rem;
+  border: 2px solid var(--color-border, #e0e0e0);
+  border-radius: 8px;
+  font-size: var(--font-size-body, 1rem);
+  font-family: var(--font-family-primary, inherit);
+  transition: all 0.2s ease-in-out;
+  box-sizing: border-box;
+  color: var(--color-text-primary, #333);
+}
+
+.search-input:focus {
+  outline: var(--focus-outline, 2px solid var(--color-info, #3498db));
+  outline-offset: var(--focus-outline-offset, 2px);
+  border-color: var(--color-primary, #007a63);
+  box-shadow: 0 0 0 3px rgba(0, 184, 148, 0.1);
+}
+
+.search-input::placeholder {
+  color: #999;
+}
+
+.upcoming-section {
+  background: white;
+  border-radius: 12px;
+  padding: 2rem;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+  margin-bottom: 2rem;
+}
+
+.appointments-grid {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+
+.appointment-card {
+  border: 2px solid #e0e0e0;
+  border-radius: 8px;
+  padding: 1.5rem;
+  transition: all 0.2s;
+  width: 100%;
+}
+
+.appointment-card:hover {
+  border-color: #007a63;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
+
+.appointment-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: start;
+  margin-bottom: 1rem;
+}
+
+.appointment-header h3 {
+  font-size: 1.2rem;
+  color: #333;
+  margin: 0;
+}
+
+.appointment-details {
+  margin-bottom: 1rem;
+}
+
+.loading,
+.empty-state {
+  text-align: center;
+  padding: 3rem;
+  color: #666;
+}
+
+.empty-state p {
+  margin-bottom: 1rem;
+}
+
+.error-message {
+  background: #fee;
+  color: #c33;
+  padding: 1rem;
+  border-radius: 6px;
+  margin-bottom: 2rem;
+  text-align: center;
+}
+
+.search-results-info {
+  color: #666;
+  font-size: 0.9rem;
+  margin-bottom: 1rem;
+  padding: 0.5rem 0;
+}
+
+.status-completed {
+  background-color: #d1ecf1;
+  color: #0c5460;
+}
+
+.status-cancelled {
+  background-color: #f8d7da;
+  color: #721c24;
+}
+
+.status-no-show {
+  background-color: #fff3cd;
+  color: #856404;
 }
