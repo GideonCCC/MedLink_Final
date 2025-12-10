@@ -321,3 +321,129 @@ p.appointment-specialty,
 .modal-confirm-button:hover {
   background: #c82333;
 }
+
+/* Doctor Name Link */
+.doctor-name-link {
+  background: none;
+  border: none;
+  color: #007a63;
+  font-size: 1.2rem;
+  font-weight: 600;
+  cursor: pointer;
+  padding: 0;
+  text-align: left;
+  font-family: inherit;
+  transition: color 0.2s;
+}
+
+.doctor-name-link:hover {
+  color: #006b54;
+  text-decoration: underline;
+}
+
+/* Doctor Info Modal */
+.doctor-info-modal {
+  max-width: 600px;
+  max-height: 90vh;
+  overflow-y: auto;
+}
+
+.doctor-modal-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 1.5rem;
+  padding-bottom: 1rem;
+  border-bottom: 2px solid #e0e0e0;
+}
+
+.doctor-modal-header h3 {
+  margin: 0;
+}
+
+.modal-close-button {
+  background: none;
+  border: none;
+  font-size: 2rem;
+  color: #666;
+  cursor: pointer;
+  width: 32px;
+  height: 32px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  transition: all 0.2s;
+  padding: 0;
+  line-height: 1;
+}
+
+.modal-close-button:hover {
+  background: #f0f0f0;
+  color: #333;
+}
+
+.doctor-info-loading,
+.doctor-info-error {
+  text-align: center;
+  padding: 2rem;
+  color: #666;
+}
+
+.doctor-info-error {
+  color: #c33;
+}
+
+.doctor-info-content {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+
+.doctor-info-section {
+  margin-bottom: 0.5rem;
+}
+
+.doctor-info-name {
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: #333;
+  margin: 0 0 0.5rem 0;
+}
+
+.doctor-info-specialty {
+  font-size: 1rem;
+  color: #666;
+  margin: 0;
+}
+
+.doctor-info-details {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.doctor-info-item {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+
+.doctor-info-label {
+  font-weight: 600;
+  color: #333;
+  font-size: 0.9rem;
+}
+
+.doctor-info-value {
+  color: #555;
+  font-size: 0.95rem;
+}
+
+.doctor-info-text {
+  color: #555;
+  font-size: 0.95rem;
+  line-height: 1.6;
+  margin: 0;
+  white-space: pre-wrap;
+}

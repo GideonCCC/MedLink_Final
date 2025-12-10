@@ -151,7 +151,7 @@ function Home() {
   const handleSearch = (e) => {
     e.preventDefault();
     if (searchQuery.trim()) {
-      navigate(`/doctors?specialty=${encodeURIComponent(searchQuery)}`);
+      navigate(`/doctors?nameOrSpecialty=${encodeURIComponent(searchQuery)}`);
       setShowModal(false);
     }
   };
@@ -166,7 +166,7 @@ function Home() {
       );
       
       if (isSpecialty) {
-        navigate(`/doctors?specialty=${encodeURIComponent(query)}`);
+        navigate(`/doctors?nameOrSpecialty=${encodeURIComponent(query)}`);
       } else if (matchingDoctors.length === 1) {
         // If exactly one doctor matches, go directly to their schedule
         navigate(`/doctors/${matchingDoctors[0].id}/schedule`);
@@ -185,7 +185,7 @@ function Home() {
   };
 
   const handleSpecialtyClick = (specialty) => {
-    navigate(`/doctors?specialty=${encodeURIComponent(specialty)}`);
+    navigate(`/doctors?nameOrSpecialty=${encodeURIComponent(specialty)}`);
     setShowModal(false);
   };
 

@@ -124,18 +124,15 @@ router.get('/specialties', async (req, res) => {
 router.get('/', async (req, res) => {
   try {
     const db = getDatabase();
-    const { specialty, name } = req.query;
+    const { nameOrSpecialty } = req.query;
 
+    // Build query - if nameOrSpecialty is provided, search by name or specialty
     const query = { role: 'doctor' };
-    
-    // Support searching by specialty
-    if (specialty) {
-      query.specialty = { $regex: specialty, $options: 'i' };
-    }
-    
-    // Support searching by doctor name
-    if (name) {
-      query.name = { $regex: name, $options: 'i' };
+    if (nameOrSpecialty && nameOrSpecialty.trim()) {
+      query.$or = [
+        { name: { $regex: nameOrSpecialty.trim(), $options: 'i' } },
+        { specialty: { $regex: nameOrSpecialty.trim(), $options: 'i' } },
+      ];
     }
 
     const doctors = await db
@@ -390,6 +387,47 @@ router.get('/:id/availability', async (req, res) => {
     });
   } catch (error) {
     console.error('Get availability error:', error);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
+// Get single doctor by ID (public - no auth required)
+// NOTE: This route must come AFTER /:id/availability to avoid route conflicts
+router.get('/:id', async (req, res) => {
+  try {
+    const db = getDatabase();
+    const { id } = req.params;
+
+    let doctorObjectId;
+    try {
+      doctorObjectId = new ObjectId(id);
+    } catch (error) {
+      return res.status(400).json({ error: 'Invalid doctor ID' });
+    }
+
+    const doctor = await db
+      .collection('users')
+      .findOne(
+        { _id: doctorObjectId, role: 'doctor' },
+        { projection: { hashedPassword: 0 } }
+      );
+
+    if (!doctor) {
+      return res.status(404).json({ error: 'Doctor not found' });
+    }
+
+    res.json({
+      id: doctor._id.toString(),
+      name: doctor.name,
+      specialty: doctor.specialty,
+      email: doctor.email,
+      phone: doctor.phone || '',
+      about: doctor.about || '',
+      contact: doctor.contact || '',
+      additionalInfo: doctor.additionalInfo || '',
+    });
+  } catch (error) {
+    console.error('Get doctor error:', error);
     res.status(500).json({ error: 'Internal server error' });
   }
 });

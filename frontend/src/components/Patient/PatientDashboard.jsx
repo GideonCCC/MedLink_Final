@@ -10,6 +10,9 @@ function PatientDashboard() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [cancelConfirm, setCancelConfirm] = useState(null);
+  const [selectedDoctorId, setSelectedDoctorId] = useState(null);
+  const [doctorInfo, setDoctorInfo] = useState(null);
+  const [loadingDoctorInfo, setLoadingDoctorInfo] = useState(false);
 
   useEffect(() => {
     loadUpcomingAppointments();
@@ -54,6 +57,25 @@ function PatientDashboard() {
     }
   }
 
+  async function handleDoctorNameClick(doctorId) {
+    setSelectedDoctorId(doctorId);
+    setLoadingDoctorInfo(true);
+    try {
+      const data = await apiClient(`/api/doctors/${doctorId}`);
+      setDoctorInfo(data);
+    } catch (err) {
+      setError(err.message || 'Failed to load doctor information');
+      setSelectedDoctorId(null);
+    } finally {
+      setLoadingDoctorInfo(false);
+    }
+  }
+
+  function handleCloseDoctorModal() {
+    setSelectedDoctorId(null);
+    setDoctorInfo(null);
+  }
+
   return (
     <div className="patient-dashboard">
       {error && <div className="error-banner">{error}</div>}
@@ -79,6 +101,7 @@ function PatientDashboard() {
                 key={apt.id}
                 appointment={apt}
                 onCancel={handleCancelClick}
+                onDoctorClick={handleDoctorNameClick}
               />
             ))}
           </div>
@@ -91,11 +114,20 @@ function PatientDashboard() {
           onDismiss={handleCancelDismiss}
         />
       )}
+
+      {selectedDoctorId && (
+        <DoctorInfoModal
+          doctorId={selectedDoctorId}
+          doctorInfo={doctorInfo}
+          loading={loadingDoctorInfo}
+          onClose={handleCloseDoctorModal}
+        />
+      )}
     </div>
   );
 }
 
-function AppointmentCard({ appointment, onCancel }) {
+function AppointmentCard({ appointment, onCancel, onDoctorClick }) {
   function formatDate(dateString) {
     const date = new Date(dateString);
     // Use clinic timezone (America/New_York) for consistent date display
@@ -113,7 +145,15 @@ function AppointmentCard({ appointment, onCancel }) {
   return (
     <div className="appointment-card">
       <div className="appointment-header">
-        <h3>{appointment.doctorName}</h3>
+        <h3>
+          <button
+            type="button"
+            className="doctor-name-link"
+            onClick={() => onDoctorClick(appointment.doctorId)}
+          >
+            {appointment.doctorName}
+          </button>
+        </h3>
         <span className="status-badge status-upcoming">
           {appointment.status}
         </span>
@@ -150,6 +190,7 @@ function AppointmentCard({ appointment, onCancel }) {
 AppointmentCard.propTypes = {
   appointment: PropTypes.shape({
     id: PropTypes.string.isRequired,
+    doctorId: PropTypes.string.isRequired,
     doctorName: PropTypes.string.isRequired,
     doctorSpecialty: PropTypes.string,
     startDateTime: PropTypes.string.isRequired,
@@ -157,6 +198,7 @@ AppointmentCard.propTypes = {
     status: PropTypes.string.isRequired,
   }).isRequired,
   onCancel: PropTypes.func.isRequired,
+  onDoctorClick: PropTypes.func.isRequired,
 };
 
 function CancelConfirmModal({ onConfirm, onDismiss }) {
@@ -253,6 +295,162 @@ function CancelConfirmModal({ onConfirm, onDismiss }) {
 CancelConfirmModal.propTypes = {
   onConfirm: PropTypes.func.isRequired,
   onDismiss: PropTypes.func.isRequired,
+};
+
+function DoctorInfoModal({ doctorId, doctorInfo, loading, onClose }) {
+  const modalRef = useRef(null);
+  const firstFocusableRef = useRef(null);
+
+  useEffect(() => {
+    document.body.style.overflow = 'hidden';
+    if (firstFocusableRef.current) {
+      firstFocusableRef.current.focus();
+    }
+    return () => {
+      document.body.style.overflow = 'unset';
+    };
+  }, []);
+
+  useEffect(() => {
+    const handleEscape = (e) => {
+      if (e.key === 'Escape') {
+        onClose();
+      }
+    };
+
+    document.addEventListener('keydown', handleEscape);
+    return () => {
+      document.removeEventListener('keydown', handleEscape);
+    };
+  }, [onClose]);
+
+  const handleKeyDown = (e) => {
+    if (e.key === 'Tab') {
+      const focusableElements = modalRef.current?.querySelectorAll(
+        'button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])'
+      );
+      if (focusableElements && focusableElements.length > 0) {
+        const firstElement = focusableElements[0];
+        const lastElement = focusableElements[focusableElements.length - 1];
+
+        if (e.shiftKey) {
+          if (document.activeElement === firstElement) {
+            e.preventDefault();
+            lastElement.focus();
+          }
+        } else {
+          if (document.activeElement === lastElement) {
+            e.preventDefault();
+            firstElement.focus();
+          }
+        }
+      }
+    }
+  };
+
+  return createPortal(
+    <div
+      className="modal-overlay"
+      onClick={onClose}
+      role="presentation"
+      aria-hidden="false"
+    >
+      <div
+        className="modal-content doctor-info-modal"
+        onClick={(e) => e.stopPropagation()}
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="doctor-modal-title"
+        aria-describedby="doctor-modal-description"
+        tabIndex={-1}
+        ref={modalRef}
+        onKeyDown={handleKeyDown}
+      >
+        <div className="doctor-modal-header">
+          <h3 id="doctor-modal-title">Doctor Information</h3>
+          <button
+            onClick={onClose}
+            className="modal-close-button"
+            aria-label="Close doctor information"
+            ref={firstFocusableRef}
+          >
+            ×
+          </button>
+        </div>
+
+        {loading ? (
+          <div className="doctor-info-loading">Loading doctor information...</div>
+        ) : doctorInfo ? (
+          <div className="doctor-info-content" id="doctor-modal-description">
+            <div className="doctor-info-section">
+              <h4 className="doctor-info-name">{doctorInfo.name}</h4>
+              {doctorInfo.specialty && (
+                <p className="doctor-info-specialty">{doctorInfo.specialty}</p>
+              )}
+            </div>
+
+            <div className="doctor-info-details">
+              {doctorInfo.email && (
+                <div className="doctor-info-item">
+                  <span className="doctor-info-label">Email:</span>
+                  <span className="doctor-info-value">{doctorInfo.email}</span>
+                </div>
+              )}
+
+              {doctorInfo.phone && (
+                <div className="doctor-info-item">
+                  <span className="doctor-info-label">Phone:</span>
+                  <span className="doctor-info-value">{doctorInfo.phone}</span>
+                </div>
+              )}
+
+              {doctorInfo.about && (
+                <div className="doctor-info-item">
+                  <span className="doctor-info-label">About:</span>
+                  <p className="doctor-info-text">{doctorInfo.about}</p>
+                </div>
+              )}
+
+              {doctorInfo.contact && (
+                <div className="doctor-info-item">
+                  <span className="doctor-info-label">Contact:</span>
+                  <p className="doctor-info-text">{doctorInfo.contact}</p>
+                </div>
+              )}
+
+              {doctorInfo.additionalInfo && (
+                <div className="doctor-info-item">
+                  <span className="doctor-info-label">Additional Information:</span>
+                  <p className="doctor-info-text">{doctorInfo.additionalInfo}</p>
+                </div>
+              )}
+            </div>
+          </div>
+        ) : (
+          <div className="doctor-info-error">
+            Failed to load doctor information.
+          </div>
+        )}
+      </div>
+    </div>,
+    document.body
+  );
+}
+
+DoctorInfoModal.propTypes = {
+  doctorId: PropTypes.string.isRequired,
+  doctorInfo: PropTypes.shape({
+    id: PropTypes.string,
+    name: PropTypes.string,
+    specialty: PropTypes.string,
+    email: PropTypes.string,
+    phone: PropTypes.string,
+    about: PropTypes.string,
+    contact: PropTypes.string,
+    additionalInfo: PropTypes.string,
+  }),
+  loading: PropTypes.bool.isRequired,
+  onClose: PropTypes.func.isRequired,
 };
 
 export default PatientDashboard;

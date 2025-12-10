@@ -84,6 +84,13 @@ function BookVisitStart() {
     }
   };
 
+  const handleDoctorClick = (doctorName) => {
+    setSelectedSpecialty(doctorName);
+    setSelectedService(null);
+    setShowDoctorsModal(true);
+    setShowModal(false);
+  };
+
   const handleSpecialtyClick = (specialty) => {
     setSelectedSpecialty(specialty);
     setSelectedService(null);
@@ -156,6 +163,7 @@ function BookVisitStart() {
           onSearchSubmit={handleModalSearch}
           specialties={filteredSpecialties}
           onSpecialtyClick={handleSpecialtyClick}
+          onDoctorClick={handleDoctorClick}
         />
       )}
 
@@ -184,8 +192,12 @@ function SearchModal({
   onSearchSubmit,
   specialties,
   onSpecialtyClick,
+  onDoctorClick,
 }) {
   const modalRef = React.useRef(null);
+  const [doctors, setDoctors] = useState([]);
+  const [loadingDoctors, setLoadingDoctors] = useState(false);
+  const searchTimeoutRef = React.useRef(null);
 
   React.useEffect(() => {
     document.body.style.overflow = 'hidden';
@@ -210,6 +222,41 @@ function SearchModal({
       document.removeEventListener('keydown', handleEscape);
     };
   }, [onClose]);
+
+  // Fetch doctors when search query changes (with debouncing)
+  React.useEffect(() => {
+    // Clear previous timeout
+    if (searchTimeoutRef.current) {
+      clearTimeout(searchTimeoutRef.current);
+    }
+
+    // If search query is empty, clear doctors
+    if (!searchQuery.trim()) {
+      setDoctors([]);
+      return;
+    }
+
+    // Debounce the search
+    searchTimeoutRef.current = setTimeout(async () => {
+      try {
+        setLoadingDoctors(true);
+        const params = `?nameOrSpecialty=${encodeURIComponent(searchQuery.trim())}`;
+        const data = await apiClient(`/api/doctors${params}`);
+        setDoctors(data);
+      } catch (err) {
+        console.error('Failed to load doctors:', err);
+        setDoctors([]);
+      } finally {
+        setLoadingDoctors(false);
+      }
+    }, 300); // 300ms debounce
+
+    return () => {
+      if (searchTimeoutRef.current) {
+        clearTimeout(searchTimeoutRef.current);
+      }
+    };
+  }, [searchQuery]);
 
   const handleKeyDown = (e) => {
     // Trap focus within modal
@@ -282,22 +329,54 @@ function SearchModal({
           </div>
         </form>
 
-        <div className="specialties-dropdown">
-          <p className="specialties-label">All Specialties We Provide:</p>
-          <div className="specialties-list">
-            {specialties.length === 0 ? (
-              <div className="no-specialties">No specialties found</div>
-            ) : (
-              specialties.map((specialty) => (
-                <button
-                  key={specialty}
-                  className="specialty-item"
-                  onClick={() => onSpecialtyClick(specialty)}
-                >
-                  {specialty}
-                </button>
-              ))
-            )}
+        <div className="search-results">
+          {/* Doctor Suggestions */}
+          {searchQuery.trim() && (
+            <div className="search-results-section">
+              <p className="search-results-label">Doctors</p>
+              {loadingDoctors ? (
+                <div className="search-loading">Searching doctors...</div>
+              ) : doctors.length === 0 ? (
+                <div className="no-results">No doctors found</div>
+              ) : (
+                <div className="doctors-suggestions-list">
+                  {doctors.map((doctor) => (
+                    <button
+                      key={doctor.id}
+                      className="doctor-suggestion-item"
+                      onClick={() => onDoctorClick(doctor.name)}
+                    >
+                      <span className="doctor-suggestion-name">{doctor.name}</span>
+                      {doctor.specialty && (
+                        <span className="doctor-suggestion-specialty">{doctor.specialty}</span>
+                      )}
+                    </button>
+                  ))}
+                </div>
+              )}
+            </div>
+          )}
+
+          {/* Specialties Dropdown */}
+          <div className="specialties-dropdown">
+            <p className="specialties-label">
+              {searchQuery.trim() ? 'Matching Specialties' : 'All Specialties We Provide:'}
+            </p>
+            <div className="specialties-list">
+              {specialties.length === 0 ? (
+                <div className="no-specialties">No specialties found</div>
+              ) : (
+                specialties.map((specialty) => (
+                  <button
+                    key={specialty}
+                    className="specialty-item"
+                    onClick={() => onSpecialtyClick(specialty)}
+                  >
+                    {specialty}
+                  </button>
+                ))
+              )}
+            </div>
           </div>
         </div>
       </div>
@@ -313,6 +392,7 @@ SearchModal.propTypes = {
   onSearchSubmit: PropTypes.func.isRequired,
   specialties: PropTypes.arrayOf(PropTypes.string).isRequired,
   onSpecialtyClick: PropTypes.func.isRequired,
+  onDoctorClick: PropTypes.func.isRequired,
 };
 
 function DoctorsSelectionModal({ specialty, service, serviceMap, onClose, onSlotSelected }) {
@@ -402,7 +482,7 @@ function DoctorsSelectionModal({ specialty, service, serviceMap, onClose, onSlot
     try {
       setLoading(true);
       const finalSpecialty = specialty || (service ? serviceMap[service] : null);
-      const params = finalSpecialty ? `?specialty=${encodeURIComponent(finalSpecialty)}` : '';
+      const params = finalSpecialty ? `?nameOrSpecialty=${encodeURIComponent(finalSpecialty)}` : '';
       const data = await apiClient(`/api/doctors${params}`);
       setDoctors(data);
     } catch (err) {
