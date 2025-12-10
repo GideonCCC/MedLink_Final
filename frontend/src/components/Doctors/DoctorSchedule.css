@@ -177,6 +177,58 @@
   font-size: 0.9rem;
 }
 
+.doctor-contact-info {
+  color: #555;
+  margin: 0.25rem 0 0 0;
+  font-size: 0.8rem;
+}
+
+.show-more-button {
+  margin-top: 0.5rem;
+  padding: 0.5rem 1rem;
+  background: transparent;
+  border: 1px solid #007a63;
+  color: #007a63;
+  border-radius: 6px;
+  font-size: 0.85rem;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.show-more-button:hover {
+  background: #007a63;
+  color: white;
+}
+
+.doctor-about-section {
+  margin-top: 1rem;
+  padding-top: 1rem;
+  border-top: 1px solid #e0e0e0;
+}
+
+.about-item {
+  margin-bottom: 1rem;
+}
+
+.about-item:last-child {
+  margin-bottom: 0;
+}
+
+.about-item h4 {
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: #333;
+  margin: 0 0 0.5rem 0;
+}
+
+.about-item p {
+  font-size: 0.85rem;
+  color: #555;
+  margin: 0;
+  line-height: 1.5;
+  white-space: pre-wrap;
+}
+
 @media (max-width: 768px) {
   .slots-grid {
     grid-template-columns: repeat(auto-fill, minmax(100px, 1fr));

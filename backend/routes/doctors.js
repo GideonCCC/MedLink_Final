@@ -149,6 +149,10 @@ router.get('/', async (req, res) => {
         name: doctor.name,
         specialty: doctor.specialty,
         email: doctor.email,
+        phone: doctor.phone || '',
+        about: doctor.about || '',
+        contact: doctor.contact || '',
+        additionalInfo: doctor.additionalInfo || '',
       }))
     );
   } catch (error) {
@@ -355,6 +359,11 @@ router.get('/:id/availability', async (req, res) => {
         id: doctor._id.toString(),
         name: doctor.name,
         specialty: doctor.specialty,
+        email: doctor.email,
+        phone: doctor.phone || '',
+        about: doctor.about || '',
+        contact: doctor.contact || '',
+        additionalInfo: doctor.additionalInfo || '',
       },
       date: date,
       slots,

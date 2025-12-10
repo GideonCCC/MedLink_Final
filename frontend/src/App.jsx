@@ -21,6 +21,7 @@ import DoctorsLayout from './components/Doctors/DoctorsLayout';
 import DoctorAvailibility from './components/Doctors/Availibility/DoctorAvailibility';
 import UpcomingAppointments from './components/Doctors/UpcomingAppointments/UpcomingAppointments';
 import PastAppointments from './components/Doctors/PastAppointments/PastAppointments';
+import DoctorProfile from './components/Doctors/DoctorProfile';
 
 function App() {
   return (
@@ -95,6 +96,10 @@ function App() {
                       <Route
                         path="past-appointments"
                         element={<PastAppointments />}
+                      />
+                      <Route
+                        path="profile"
+                        element={<DoctorProfile />}
                       />
                     </Routes>
                   </DoctorsLayout>

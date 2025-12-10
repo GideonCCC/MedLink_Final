@@ -164,6 +164,15 @@ function DoctorSchedule() {
                   <p className="doctor-specialty-card">
                     {doctor ? doctor.specialty || 'General Practice' : ''}
                   </p>
+                  {doctor && doctor.phone && (
+                    <p className="doctor-contact-info">📞 {doctor.phone}</p>
+                  )}
+                  {doctor && doctor.email && (
+                    <p className="doctor-contact-info">✉️ {doctor.email}</p>
+                  )}
+                  {doctor && (doctor.about || doctor.contact || doctor.additionalInfo) && (
+                    <DoctorAboutInfo doctor={doctor} />
+                  )}
                 </div>
               </div>
               <div className="doctor-time-slots">
@@ -187,6 +196,56 @@ function DoctorSchedule() {
     </div>
   );
 }
+
+function DoctorAboutInfo({ doctor }) {
+  const [showMore, setShowMore] = useState(false);
+  
+  const hasAboutInfo = doctor.about || doctor.contact || doctor.additionalInfo;
+  
+  if (!hasAboutInfo) return null;
+  
+  return (
+    <div>
+      <button
+        className="show-more-button"
+        onClick={() => setShowMore(!showMore)}
+        type="button"
+      >
+        {showMore ? 'Show Less' : 'Show More Info'}
+      </button>
+      {showMore && (
+        <div className="doctor-about-section">
+          {doctor.about && (
+            <div className="about-item">
+              <h4>About</h4>
+              <p>{doctor.about}</p>
+            </div>
+          )}
+          {doctor.contact && (
+            <div className="about-item">
+              <h4>Contact</h4>
+              <p>{doctor.contact}</p>
+            </div>
+          )}
+          {doctor.additionalInfo && (
+            <div className="about-item">
+              <h4>Additional Information</h4>
+              <p>{doctor.additionalInfo}</p>
+            </div>
+          )}
+        </div>
+      )}
+    </div>
+  );
+}
+
+DoctorAboutInfo.propTypes = {
+  doctor: PropTypes.shape({
+    about: PropTypes.string,
+    contact: PropTypes.string,
+    additionalInfo: PropTypes.string,
+  }),
+};
 
 function DoctorAvatar() {
   return (

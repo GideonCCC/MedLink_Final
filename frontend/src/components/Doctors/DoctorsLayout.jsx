@@ -63,6 +63,12 @@ function DoctorsLayout({ children }) {
             >
               Past Appointments
             </Link>
+            <Link
+              to="/doctor/profile"
+              className={`sidebar-nav-item ${isActive('/doctor/profile') ? 'active' : ''}`}
+            >
+              My Profile
+            </Link>
             <button
               onClick={handleLogoutClick}
               className="sidebar-nav-item sidebar-logout"

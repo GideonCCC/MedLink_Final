@@ -199,4 +199,84 @@ router.post('/update-availability', PreCheck.availibility, async (req, res) => {
   }
 });
 
+// Get doctor profile
+router.get('/profile', async (req, res) => {
+  try {
+    const db = getDatabase();
+    const { userId } = req.user;
+
+    const doctor = await db
+      .collection('users')
+      .findOne(
+        { _id: new ObjectId(userId), role: 'doctor' },
+        { projection: { hashedPassword: 0 } }
+      );
+
+    if (!doctor) {
+      return res.status(404).json({ error: 'Doctor not found' });
+    }
+
+    res.json({
+      id: doctor._id.toString(),
+      name: doctor.name || '',
+      email: doctor.email || '',
+      phone: doctor.phone || '',
+      specialty: doctor.specialty || '',
+      about: doctor.about || '',
+      contact: doctor.contact || '',
+      additionalInfo: doctor.additionalInfo || '',
+    });
+  } catch (error) {
+    console.error('Get profile error:', error);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
+// Update doctor profile
+router.put('/profile', async (req, res) => {
+  try {
+    const db = getDatabase();
+    const { userId } = req.user;
+    const { name, email, phone, specialty, about, contact, additionalInfo } = req.body;
+
+    // Validate required fields
+    if (!name || !email) {
+      return res.status(400).json({ error: 'Name and email are required' });
+    }
+
+    // Check if email is already taken by another user
+    const existingUser = await db
+      .collection('users')
+      .findOne({ email, _id: { $ne: new ObjectId(userId) } });
+    
+    if (existingUser) {
+      return res.status(400).json({ error: 'Email already in use' });
+    }
+
+    // Update doctor profile
+    const updateData = {
+      name,
+      email,
+      ...(phone !== undefined && { phone }),
+      ...(specialty !== undefined && { specialty }),
+      ...(about !== undefined && { about }),
+      ...(contact !== undefined && { contact }),
+      ...(additionalInfo !== undefined && { additionalInfo }),
+      updatedAt: new Date(),
+    };
+
+    await db
+      .collection('users')
+      .updateOne(
+        { _id: new ObjectId(userId), role: 'doctor' },
+        { $set: updateData }
+      );
+
+    res.json({ message: 'Profile updated successfully' });
+  } catch (error) {
+    console.error('Update profile error:', error);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
 export default router;
