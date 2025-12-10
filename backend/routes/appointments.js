@@ -43,24 +43,56 @@ router.post('/', requireAuth, requireRole('patient'), async (req, res) => {
     }
 
     // Check for conflicts (patient or doctor double-booking)
-    const conflict = await db.collection('appointments').findOne({
-      $or: [
-        {
-          patientId,
-          startDateTime: { $lt: end },
-          endDateTime: { $gt: start },
-          status: { $ne: 'cancelled' },
-        },
-        {
-          doctorId,
-          startDateTime: { $lt: end },
-          endDateTime: { $gt: start },
-          status: { $ne: 'cancelled' },
-        },
-      ],
+    const conflicts = await db.collection('appointments')
+      .find({
+        $or: [
+          {
+            patientId,
+            startDateTime: { $lt: end },
+            endDateTime: { $gt: start },
+            status: { $ne: 'cancelled' },
+          },
+          {
+            doctorId,
+            startDateTime: { $lt: end },
+            endDateTime: { $gt: start },
+            status: { $ne: 'cancelled' },
+          },
+        ],
+      })
+      .toArray();
+
+    // Check if any conflict is a no-show that's still locked (within 10 minutes)
+    const now = new Date();
+    const tenMinutesAgo = new Date(now.getTime() - 10 * 60 * 1000);
+    
+    const lockedNoShow = conflicts.find((apt) => {
+      if (apt.status === 'no-show' && apt.noShowMarkedAt) {
+        const noShowMarkedAt = new Date(apt.noShowMarkedAt);
+        return noShowMarkedAt > tenMinutesAgo;
+      }
+      return false;
     });
 
-    if (conflict) {
+    if (lockedNoShow) {
+      return res.status(409).json({ 
+        error: 'Time slot is temporarily locked due to a recent no-show. Please try again in a few minutes.' 
+      });
+    }
+
+    // Check for regular conflicts (non-no-show appointments)
+    // Note: No-show appointments with expired locks are already filtered out above
+    const activeConflict = conflicts.find((apt) => {
+      // If it's a no-show, the lock has expired (since lockedNoShow check passed)
+      // So we allow booking - don't consider it a conflict
+      if (apt.status === 'no-show') {
+        return false; // Expired no-show lock, allow booking
+      }
+      // Regular conflicts (upcoming, completed, etc.) - block booking
+      return true;
+    });
+
+    if (activeConflict) {
       return res.status(409).json({ error: 'Time slot already booked' });
     }
 
@@ -237,25 +269,57 @@ router.put('/:id', requireAuth, requireRole('patient'), async (req, res) => {
       }
 
       // Check for conflicts
-      const conflict = await db.collection('appointments').findOne({
-        _id: { $ne: appointmentObjectId },
-        $or: [
-          {
-            patientId,
-            startDateTime: { $lt: end },
-            endDateTime: { $gt: start },
-            status: { $ne: 'cancelled' },
-          },
-          {
-            doctorId: appointment.doctorId,
-            startDateTime: { $lt: end },
-            endDateTime: { $gt: start },
-            status: { $ne: 'cancelled' },
-          },
-        ],
+      const conflicts = await db.collection('appointments')
+        .find({
+          _id: { $ne: appointmentObjectId },
+          $or: [
+            {
+              patientId,
+              startDateTime: { $lt: end },
+              endDateTime: { $gt: start },
+              status: { $ne: 'cancelled' },
+            },
+            {
+              doctorId: appointment.doctorId,
+              startDateTime: { $lt: end },
+              endDateTime: { $gt: start },
+              status: { $ne: 'cancelled' },
+            },
+          ],
+        })
+        .toArray();
+
+      // Check if any conflict is a no-show that's still locked (within 10 minutes)
+      const now = new Date();
+      const tenMinutesAgo = new Date(now.getTime() - 10 * 60 * 1000);
+      
+      const lockedNoShow = conflicts.find((apt) => {
+        if (apt.status === 'no-show' && apt.noShowMarkedAt) {
+          const noShowMarkedAt = new Date(apt.noShowMarkedAt);
+          return noShowMarkedAt > tenMinutesAgo;
+        }
+        return false;
       });
 
-      if (conflict) {
+      if (lockedNoShow) {
+        return res.status(409).json({ 
+          error: 'Time slot is temporarily locked due to a recent no-show. Please try again in a few minutes.' 
+        });
+      }
+
+      // Check for regular conflicts (non-no-show appointments)
+      // Note: No-show appointments with expired locks are already filtered out above
+      const activeConflict = conflicts.find((apt) => {
+        // If it's a no-show, the lock has expired (since lockedNoShow check passed)
+        // So we allow booking - don't consider it a conflict
+        if (apt.status === 'no-show') {
+          return false; // Expired no-show lock, allow booking
+        }
+        // Regular conflicts (upcoming, completed, etc.) - block booking
+        return true;
+      });
+
+      if (activeConflict) {
         return res.status(409).json({ error: 'Time slot already booked' });
       }
 

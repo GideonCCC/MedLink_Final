@@ -46,13 +46,22 @@ router.put('/appointment/no-show/:id', async (req, res) => {
       });
     }
 
+    // Mark as no-show and record the timestamp for 10-minute lock
     await db
       .collection('appointments')
-      .updateOne({ _id: appointment._id }, { $set: { status: 'no-show' } });
+      .updateOne(
+        { _id: appointment._id },
+        {
+          $set: {
+            status: 'no-show',
+            noShowMarkedAt: new Date(),
+          },
+        }
+      );
 
     res
       .status(200)
-      .json({ message: 'Appointment marked as no-show successfully' });
+      .json({ message: 'Appointment marked as no-show successfully. Time slot locked for 10 minutes.' });
   } catch (error) {
     console.error('Update appointment error:', error);
   }

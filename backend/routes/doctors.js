@@ -346,10 +346,30 @@ router.get('/:id/availability', async (req, res) => {
         return slotStart < aptEnd && slotEnd > aptStart;
       });
 
+      // Check if slot is locked due to no-show (10-minute lock window)
+      const isLockedByNoShow = appointments.some((apt) => {
+        if (apt.status !== 'no-show' || !apt.noShowMarkedAt) {
+          return false;
+        }
+        
+        const aptStart = new Date(apt.startDateTime);
+        const aptEnd = new Date(apt.endDateTime);
+        const slotOverlaps = slotStart < aptEnd && slotEnd > aptStart;
+        
+        if (!slotOverlaps) {
+          return false;
+        }
+        
+        // Check if no-show was marked within the last 10 minutes
+        const noShowMarkedAt = new Date(apt.noShowMarkedAt);
+        const tenMinutesAgo = new Date(now.getTime() - 10 * 60 * 1000);
+        return noShowMarkedAt > tenMinutesAgo;
+      });
+
       slots.push({
         start: slotStart.toISOString(),
         end: slotEnd.toISOString(),
-        available: !isDoctorBooked && !isPatientBooked,
+        available: !isDoctorBooked && !isPatientBooked && !isLockedByNoShow,
         time: formatTimeInZone(slotStart, CLINIC_TIME_ZONE),
       });
     }
